@@ -1,26 +1,51 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  /* ─── Brand Colors ─── */
+  --color-brand-primary: #3792DE;
+  --color-brand-deep: #2273D9;
+  --color-brand-light: #9FEAFF;
+  --color-brand-mid: #80D0FF;
+  --color-brand-surface: #DFF9FF;
+  --color-brand-credits: #DEF0FF;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* ─── Neutrals / Text ─── */
+  --color-text-primary: #0E172B;
+  --color-text-heading: #191C1E;
+  --color-text-muted: #414755;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  /* ─── Borders ─── */
+  --color-border-subtle: #C1C6D7;
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* ─── Surfaces ─── */
+  --color-surface-overlay: #F0F8FF;
+  --color-surface-raised: #FCFCFF;
+  --color-surface-base: #FFFFFF;
+
+  /* ─── Status Colors ─── */
+  --color-status-active: #80D0FF;
+  --color-status-active-text: #003A52;
+  --color-status-paused: #DFF9FF;
+  --color-status-success: #EAF3DE;
+  --color-status-warning: #FAEEDA;
+  --color-status-error: #FCEBEB;
+  --color-status-error-text: #F09595;
+  --color-status-scheduled: #EDE9FE;
+
+  /* ─── Typography ─── */
+  --font-sans: "Outfit", sans-serif;
+  --font-data: "Archivo", sans-serif;
+
+  /* ─── Border Radius ─── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 15px;
+  --radius-xl: 22px;
+  --radius-pill: 9999px;
+
+  /* ─── Shadows ─── */
+  --shadow-card: 0px 3.5px 5.5px 0px rgba(0, 0, 0, 0.02);
+  --shadow-sidebar: 2px 0px 10px 0px rgba(0, 0, 0, 0.05);
+  --shadow-topbar: 0px 2px 6px 0px rgba(0, 0, 0, 0.04);
+  --shadow-button: 0px 1px 3px 0px rgba(0, 0, 0, 0.08);
 }

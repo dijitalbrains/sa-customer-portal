@@ -1,0 +1,63 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDownIcon } from "@/components/icons";
+import SubscriptionItem from "./subscription-item";
+import type { SubscriptionItemProps } from "./subscription-item";
+
+export interface OrderAccordionProps {
+  orderNumber: string;
+  placedDate: string;
+  items: SubscriptionItemProps[];
+  defaultOpen?: boolean;
+}
+
+export default function OrderAccordion({
+  orderNumber,
+  placedDate,
+  items,
+  defaultOpen = false,
+}: OrderAccordionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="bg-surface-overlay rounded-lg p-4 flex flex-col gap-2">
+      {/* Order Header — white card, clickable */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="bg-surface-base rounded-lg shadow-card flex items-center justify-between px-5 md:px-6 py-4 w-full"
+      >
+        <div className="flex items-center gap-5 md:gap-6">
+          <div className="flex flex-col gap-0.5 text-left">
+            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-[1.1px]">
+              Order Number
+            </span>
+            <span className="text-[15px] font-bold text-text-heading">
+              {orderNumber}
+            </span>
+          </div>
+          <div className="w-px h-10 bg-border-subtle/20 hidden sm:block" />
+          <div className="flex flex-col gap-0.5 text-left">
+            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-[1.1px]">
+              Placed Date
+            </span>
+            <span className="text-[15px] font-medium text-text-heading">
+              {placedDate}
+            </span>
+          </div>
+        </div>
+        <ChevronDownIcon
+          className={`w-5 h-5 text-text-muted transition-transform duration-200 shrink-0 ${
+            open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* Subscription Items — separate white cards, outside accordion header */}
+      {open &&
+        items.map((item, i) => (
+          <SubscriptionItem key={i} {...item} />
+        ))}
+    </div>
+  );
+}
