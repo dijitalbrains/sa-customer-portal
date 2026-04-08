@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDownIcon } from "@/components/icons";
 import SubscriptionItem from "./subscription-item";
 import type { SubscriptionItemProps } from "./subscription-item";
 
@@ -46,8 +45,11 @@ export default function OrderAccordion({
             </span>
           </div>
         </div>
-        <ChevronDownIcon
-          className={`w-5 h-5 text-text-muted transition-transform duration-200 shrink-0 ${
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/assets/icons/chevron-down.svg"
+          alt=""
+          className={`w-5 h-5 transition-transform duration-200 shrink-0 ${
             open ? "rotate-180" : ""
           }`}
         />

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDownIcon } from "@/components/icons";
+
+/* eslint-disable @next/next/no-img-element */
 
 interface AccordionProps {
   header: React.ReactNode;
@@ -25,8 +26,10 @@ export default function Accordion({
         className="flex items-center justify-between w-full"
       >
         <div className="flex-1 min-w-0">{header}</div>
-        <ChevronDownIcon
-          className={`w-5 h-5 text-text-muted transition-transform duration-200 shrink-0 ml-4 ${
+        <img
+          src="/assets/icons/chevron-down.svg"
+          alt=""
+          className={`w-5 h-5 transition-transform duration-200 shrink-0 ml-4 ${
             open ? "rotate-180" : ""
           }`}
         />

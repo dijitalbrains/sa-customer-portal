@@ -1,12 +1,3 @@
-/**
- * Auto-Login Route Handler
- *
- * Flow: sa-portal → /auto-login/{hashids_token} → decode → verify user → create session → redirect
- *
- * The hashids token contains [userId, adminId, random] encoded with a shared salt.
- * On failure, redirects to the legacy portal login page.
- */
-
 import { NextResponse } from "next/server";
 import { signIn } from "@/auth";
 import { decodeAutoLoginToken } from "@/lib/auth/hashids";
@@ -46,7 +37,6 @@ export async function GET(
       redirect: false,
     });
   } catch (error: unknown) {
-    // Auth.js throws NEXT_REDIRECT on successful signIn — let it through
     if (error instanceof Error && "digest" in error) {
       const digest = (error as Record<string, unknown>).digest;
       if (typeof digest === "string" && digest.startsWith("NEXT_REDIRECT")) {

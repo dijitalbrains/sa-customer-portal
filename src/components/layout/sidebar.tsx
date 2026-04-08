@@ -3,13 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { FilterIcon, UserIcon, TimelineIcon, SupportIcon, LogoutIcon } from "@/components/icons";
+
+/* eslint-disable @next/next/no-img-element */
 
 const navItems = [
-  { href: "/", label: "Filter Renewals", icon: FilterIcon },
-  { href: "/my-account", label: "My Account", icon: UserIcon },
-  { href: "/renewal-timeline", label: "Renewal Timeline", icon: TimelineIcon },
-  { href: "/support", label: "Support", icon: SupportIcon },
+  { href: "/", label: "Filter Renewals", icon: "/assets/icons/nav-filter.svg" },
+  { href: "/my-account", label: "My Account", icon: "/assets/icons/user.svg" },
+  { href: "/renewal-timeline", label: "Renewal Timeline", icon: "/assets/icons/timeline.svg" },
+  { href: "/support", label: "Support", icon: "/assets/icons/support.svg" },
 ];
 
 interface SidebarProps {
@@ -46,6 +47,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="px-5 py-[45px] flex items-center justify-center">
+          <Link
+            href="/">
           <Image
             src="/assets/images/logo.png"
             alt="Spring Aqua"
@@ -53,6 +56,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             height={61}
             priority
           />
+          </Link>
         </div>
 
         {/* Navigation */}
@@ -70,7 +74,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     : "text-black font-normal hover:bg-surface-overlay"
                 }`}
               >
-                <item.icon className="w-[16px] h-[16px] shrink-0" />
+                <img
+                  src={item.icon}
+                  alt=""
+                  className={`w-4 h-4 shrink-0 ${active ? "brightness-0 invert" : ""}`}
+                />
                 {item.label}
               </Link>
             );
@@ -91,7 +99,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             href="/api/auth/logout"
             className="flex items-center gap-3 h-10 px-4 rounded-lg text-[14px] font-normal text-black hover:bg-surface-overlay transition-colors w-full"
           >
-            <LogoutIcon className="w-[16px] h-[16px]" />
+            <img src="/assets/icons/logout.svg" alt="" className="w-4 h-4" />
             Logout
           </a>
         </div>

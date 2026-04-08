@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon, CartIcon, MenuIcon } from "@/components/icons";
+/* eslint-disable @next/next/no-img-element */
 
 interface HeaderProps {
   userName: string;
@@ -17,7 +17,7 @@ export default function Header({ userName, onMenuClick }: HeaderProps) {
           onClick={onMenuClick}
           className="lg:hidden w-9 h-9 flex items-center justify-center text-text-muted"
         >
-          <MenuIcon className="w-5 h-5" />
+          <img src="/assets/icons/menu.svg" alt="Menu" className="w-5 h-5" />
         </button>
 
         <p className="text-[15px] text-text-heading">
@@ -32,11 +32,11 @@ export default function Header({ userName, onMenuClick }: HeaderProps) {
         >
           Legacy Portal &rarr;
         </a>
-        <button className="w-9 h-9 rounded-full bg-surface-overlay flex items-center justify-center text-text-muted hover:bg-border-subtle/30 transition-colors">
-          <CartIcon className="w-[18px] h-[18px]" />
+        <button className="w-9 h-9 rounded-full bg-surface-overlay flex items-center justify-center hover:bg-border-subtle/30 transition-colors">
+          <img src="/assets/icons/cart.svg" alt="Cart" className="w-[18px] h-[18px]" />
         </button>
-        <button className="relative w-9 h-9 rounded-full bg-surface-overlay flex items-center justify-center text-text-muted hover:bg-border-subtle/30 transition-colors">
-          <BellIcon className="w-[18px] h-[18px]" />
+        <button className="relative w-9 h-9 rounded-full bg-surface-overlay flex items-center justify-center hover:bg-border-subtle/30 transition-colors">
+          <img src="/assets/icons/bell.svg" alt="Notifications" className="w-[18px] h-[18px]" />
           <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-primary rounded-full border-2 border-surface-base" />
         </button>
       </div>
