@@ -4,8 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 
-/* eslint-disable @next/next/no-img-element */
-
 const navItems = [
   { href: "/", label: "Filter Renewals", icon: "/assets/icons/nav-filter.svg" },
   { href: "/my-account", label: "My Account", icon: "/assets/icons/user.svg" },
@@ -47,15 +45,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       >
         {/* Logo */}
         <div className="px-5 py-[45px] flex items-center justify-center">
-          <Link
-            href="/">
-          <Image
-            src="/assets/images/logo.png"
-            alt="Spring Aqua"
-            width={204}
-            height={61}
-            priority
-          />
+          <Link href="/">
+            <Image
+              src="/assets/images/logo.png"
+              alt="Spring Aqua"
+              width={204}
+              height={61}
+              priority
+            />
           </Link>
         </div>
 

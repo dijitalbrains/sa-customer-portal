@@ -41,7 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    strategy: (process.env.SESSION_STRATEGY as "jwt" | "database") || "jwt",
+    maxAge: Number(process.env.SESSION_MAX_AGE || 30 * 24 * 60 * 60),
   },
 });

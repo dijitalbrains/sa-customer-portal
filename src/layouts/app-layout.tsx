@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "./sidebar";
-import Header from "./header";
+import AppSidebar from "./components/app-sidebar";
+import AppHeader from "./components/app-header";
 
 interface AppLayoutProps {
   userName: string;
@@ -19,9 +19,14 @@ export default function AppLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-white">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header
+        {adminId != null && adminId > 0 && (
+          <div className="bg-status-warning px-4 py-1.5 text-center text-[12px] font-medium text-text-heading">
+            Admin viewing as customer
+          </div>
+        )}
+        <AppHeader
           userName={userName}
           onMenuClick={() => setSidebarOpen(true)}
         />

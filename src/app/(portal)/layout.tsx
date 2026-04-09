@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
-import AppLayout from "@/components/layout/app-layout";
+import { auth } from "@/lib/auth";
+import AppLayout from "@/layouts/app-layout";
 
-export default async function DashboardLayout({
+export default async function PortalLayout({
   children,
 }: {
   children: React.ReactNode;

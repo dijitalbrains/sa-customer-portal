@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { signIn } from "@/auth";
-import { decodeAutoLoginToken } from "@/lib/auth/hashids";
+import { signIn } from "@/lib/auth";
+import HashidsService from "@/lib/hashids";
 import { prisma } from "@/lib/prisma";
 
 const LEGACY_LOGIN_URL =
-  (process.env.LEGACY_PORTAL_URL || "http://sa-portal.test") + "/login";
+  (process.env.LEGACY_PORTAL_URL) + "/login";
 
 export async function GET(
   request: Request,
@@ -12,15 +12,17 @@ export async function GET(
 ) {
   const { token } = await params;
 
-  // Step 1: Decode hashids token → [userId, adminId]
-  const decoded = decodeAutoLoginToken(token);
-  if (!decoded) {
+  // Step 1: Decode hashids token → [userId, adminId, random]
+  const decoded = HashidsService.decode(token);
+  if (decoded.length < 2) {
     return NextResponse.redirect(LEGACY_LOGIN_URL);
   }
 
+  const [userId, adminId] = decoded;
+
   // Step 2: Verify user exists in database
   const user = await prisma.users.findUnique({
-    where: { id: decoded.userId },
+    where: { id: userId },
   });
 
   if (!user) {
@@ -30,8 +32,8 @@ export async function GET(
   // Step 3: Create Auth.js session via signIn
   try {
     await signIn("auto-login", {
-      userId: String(decoded.userId),
-      adminId: String(decoded.adminId),
+      userId: String(userId),
+      adminId: String(adminId),
       userName: user.firstname || "",
       userEmail: user.email || "",
       redirect: false,
