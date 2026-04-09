@@ -2,11 +2,11 @@
 
 interface HeaderProps {
   userName: string;
+  legacyPortalUrl: string;
   onMenuClick: () => void;
 }
 
-export default function Header({ userName, onMenuClick }: HeaderProps) {
-  const legacyPortalUrl = process.env.LEGACY_PORTAL_URL;
+export default function Header({ userName, legacyPortalUrl, onMenuClick }: HeaderProps) {
 
   return (
     <header className="h-[70px] bg-surface-base shadow-[14px_0px_34px_0px_#00000014] rounded-l-[20px] flex items-center justify-between px-5 md:px-6 shrink-0 z-30 md:ml-5">

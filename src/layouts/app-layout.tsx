@@ -7,12 +7,14 @@ import AppHeader from "./components/app-header";
 interface AppLayoutProps {
   userName: string;
   adminId?: number;
+  legacyPortalUrl: string;
   children: React.ReactNode;
 }
 
 export default function AppLayout({
   userName,
   adminId,
+  legacyPortalUrl,
   children,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +30,7 @@ export default function AppLayout({
         )}
         <AppHeader
           userName={userName}
+          legacyPortalUrl={legacyPortalUrl}
           onMenuClick={() => setSidebarOpen(true)}
         />
         <main className="flex-1 overflow-y-auto p-3 md:p-4">

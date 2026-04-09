@@ -34,7 +34,7 @@ export async function GET(
     await signIn("auto-login", {
       userId: String(userId),
       adminId: String(adminId),
-      userName: user.firstname || "",
+      userName: [user.firstname, user.lastname].filter(Boolean).join(" "),
       userEmail: user.email || "",
       redirect: false,
     });
