@@ -1,11 +1,21 @@
-/**
- * Display-ready types for filter renewal UI
- *
- * These are the shapes that components consume — already transformed
- * from raw DB data by the subscription service.
- */
+export type PaymentMethod =
+  | {
+      type: "card";
+      brandImage: string;
+      last4: string;
+      statusText: string;
+      isFailed: boolean;
+      isExpiringSoon: boolean;
+    }
+  | {
+      type: "bank";
+      bankName: string;
+      last4: string;
+    }
+  | null;
 
-export interface SubscriptionItemView {
+export interface SubscriptionItem {
+  detailUrl: string;
   productName: string;
   nickname: string;
   price: string;
@@ -17,17 +27,19 @@ export interface SubscriptionItemView {
   isLoyaltyEnabled: boolean;
   productType: string;
   progress: number;
+  payment: PaymentMethod;
 }
 
-export interface SubscriptionView {
+export interface Subscription {
   title: string;
   isLoyaltyEnabled: boolean;
   hasPendingInstall: boolean;
-  subscriptionItems: SubscriptionItemView[];
+  subscriptionItems: SubscriptionItem[];
 }
 
-export interface OrderView {
-  orderNumber: string;
+export interface Order {
   placedDate: string;
-  subscriptions: SubscriptionView[];
+  hasExpiredItem: boolean;
+  hasFailedCard: boolean;
+  subscriptions: Subscription[];
 }

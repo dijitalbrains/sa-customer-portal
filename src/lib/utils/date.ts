@@ -1,7 +1,3 @@
-/**
- * Date formatting helpers
- */
-
 export function formatLongDate(date: Date | null): string {
   if (!date) return "—";
   return new Date(date).toLocaleDateString("en-US", {

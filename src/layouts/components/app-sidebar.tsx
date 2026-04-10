@@ -67,7 +67,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`flex items-center gap-3 h-10 px-4 rounded-lg text-[14px] transition-colors w-full ${
                   active
-                    ? "bg-brand-primary text-white font-medium"
+                    ? "bg-brand-gradient text-white font-medium"
                     : "text-black font-normal hover:bg-surface-overlay"
                 }`}
               >

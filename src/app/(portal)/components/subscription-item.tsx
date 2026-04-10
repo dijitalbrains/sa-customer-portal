@@ -1,13 +1,13 @@
 import Button from "@/components/ui/button";
 import SubscriptionItemCard from "./subscription-item-card";
-import type { SubscriptionView } from "@/lib/types/subscription";
+import type { Subscription } from "@/lib/types/subscription";
 
 export default function SubscriptionItem({
   title,
   isLoyaltyEnabled,
   hasPendingInstall,
   subscriptionItems,
-}: SubscriptionView) {
+}: Subscription) {
   const showPauseButton = isLoyaltyEnabled && !hasPendingInstall;
 
   return (

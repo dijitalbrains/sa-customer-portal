@@ -1,9 +1,3 @@
-/**
- * Subscription-related calculation helpers
- *
- * Mirrors logic from sa-portal SubscriptionItem model and FilterRenewals.vue
- */
-
 export type ValidityStatus = "PENDING" | "ACTIVE" | "EXPIRED";
 
 export function getValidityStatus(
@@ -36,4 +30,20 @@ export function getProgressPercent(
 export function getRemainingMonthsText(monthsRemaining: number | null): string | null {
   if (monthsRemaining == null) return null;
   return `${monthsRemaining} month${monthsRemaining !== 1 ? "s" : ""} remaining`;
+}
+
+export function getSubscriptionTitle(subscription: {
+  products: { technology: string | null; name: string };
+  nickname: string | null;
+}): string {
+  const name = subscription.products.technology || subscription.products.name;
+  return subscription.nickname ? `${name} | ${subscription.nickname}` : name;
+}
+
+export function hasPendingInstall(subscription: {
+  subscription_items: { starts_at: Date | null; ends_at: Date | null }[];
+}): boolean {
+  return subscription.subscription_items.some(
+    (item) => getValidityStatus(item.ends_at, item.starts_at) === "PENDING"
+  );
 }

@@ -7,7 +7,7 @@ type ButtonSize = "sm" | "md";
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-primary text-white hover:bg-brand-deep shadow-button",
+    "bg-brand-gradient text-white hover:opacity-90 shadow-button",
   ghost:
     "bg-transparent text-text-muted hover:bg-surface-overlay",
   outline:

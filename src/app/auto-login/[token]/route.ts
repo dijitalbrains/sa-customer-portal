@@ -3,8 +3,7 @@ import { signIn } from "@/lib/auth";
 import HashidsService from "@/lib/hashids";
 import { prisma } from "@/lib/prisma";
 
-const LEGACY_LOGIN_URL =
-  (process.env.LEGACY_PORTAL_URL) + "/login";
+const LEGACY_LOGIN_URL = process.env.LEGACY_PORTAL_URL + "/login";
 
 export async function GET(
   request: Request,
@@ -12,7 +11,6 @@ export async function GET(
 ) {
   const { token } = await params;
 
-  // Step 1: Decode hashids token → [userId, adminId, random]
   const decoded = HashidsService.decode(token);
   if (decoded.length < 2) {
     return NextResponse.redirect(LEGACY_LOGIN_URL);
@@ -20,7 +18,6 @@ export async function GET(
 
   const [userId, adminId] = decoded;
 
-  // Step 2: Verify user exists in database
   const user = await prisma.users.findUnique({
     where: { id: userId },
   });
@@ -29,7 +26,6 @@ export async function GET(
     return NextResponse.redirect(LEGACY_LOGIN_URL);
   }
 
-  // Step 3: Create Auth.js session via signIn
   try {
     await signIn("auto-login", {
       userId: String(userId),
@@ -48,6 +44,5 @@ export async function GET(
     return NextResponse.redirect(LEGACY_LOGIN_URL);
   }
 
-  // Step 4: Redirect to dashboard
   return NextResponse.redirect(new URL("/", request.url));
 }

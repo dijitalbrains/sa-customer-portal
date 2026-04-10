@@ -1,7 +1,3 @@
-/**
- * Address formatting helpers
- */
-
 export interface AddressLike {
   street: string;
   apartment?: string | null;

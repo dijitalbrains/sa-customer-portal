@@ -26,7 +26,7 @@ export default function Header({ userName, legacyPortalUrl, onMenuClick }: Heade
       <div className="flex items-center gap-2">
         <a
           href={legacyPortalUrl}
-          className="inline-flex items-center px-3 py-1.5 rounded-pill bg-brand-primary text-white text-[12px] font-semibold hover:bg-brand-deep transition-colors"
+          className="inline-flex items-center px-3 py-1.5 rounded-pill bg-brand-gradient text-white text-[12px] font-semibold hover:bg-brand-deep transition-colors"
         >
           Legacy Version &rarr;
         </a>
