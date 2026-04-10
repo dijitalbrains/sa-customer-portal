@@ -1,35 +1,20 @@
 import Badge from "@/components/ui/badge";
 import ProgressBar from "@/components/ui/progress-bar";
+import type { SubscriptionItemView } from "@/lib/types/subscription";
 
-/* eslint-disable @next/next/no-img-element */
-
-export interface RenewalCardProps {
-  iconSrc: string;
-  title: string;
-  location: string;
-  price: string;
-  status: "active" | "expired";
-  frequency: string;
-  remaining?: string;
-  nextDate: string;
-  shipTo: string;
-  loyalty: React.ReactNode;
-  progress: number;
-}
-
-export default function RenewalCard({
-  iconSrc,
-  title,
-  location,
+export default function SubscriptionItemCard({
+  productName,
+  nickname,
   price,
   status,
   frequency,
   remaining,
   nextDate,
   shipTo,
-  loyalty,
+  isLoyaltyEnabled,
+  productType,
   progress,
-}: RenewalCardProps) {
+}: SubscriptionItemView) {
   const isExpired = status === "expired";
   const textColor = isExpired ? "text-status-error-text" : "text-text-primary";
   const mutedColor = isExpired ? "text-status-error-text" : "text-text-muted";
@@ -42,20 +27,21 @@ export default function RenewalCard({
     >
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <img src={iconSrc} alt="" className="w-4 h-4 shrink-0" />
-          <div className="flex items-baseline gap-1.5 flex-wrap">
-            <span className={`text-[13px] font-bold ${isExpired ? "text-status-error-text" : "text-text-primary"}`}>
-              {title}
-            </span>
-            <span className={`text-[12px] font-normal ${mutedColor}`}>({location})</span>
-          </div>
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className={`text-[13px] font-bold ${isExpired ? "text-status-error-text" : "text-text-primary"}`}>
+            {productName}
+          </span>
+          {nickname && (
+            <span className={`text-[12px] font-normal ${mutedColor}`}>({nickname})</span>
+          )}
         </div>
-        <div className="flex items-center gap-2 ml-7 sm:ml-0">
-          <p className={`text-[12px] ${textColor}`}>
-            <span className="font-bold">{price} </span>
-            <span className="font-normal">(plus shipping + tax)</span>
-          </p>
+        <div className="flex items-center gap-2">
+          {isLoyaltyEnabled && (
+            <p className={`text-[12px] ${textColor}`}>
+              <span className="font-bold">{price} </span>
+              <span className="font-normal">(plus shipping + tax)</span>
+            </p>
+          )}
           <Badge status={status} label={isExpired ? "Expired" : "Active"} />
         </div>
       </div>
@@ -89,7 +75,16 @@ export default function RenewalCard({
           <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>
             Loyalty Program
           </span>
-          <div className={`text-[12px] font-normal ${textColor}`}>{loyalty}</div>
+          <div className={`text-[12px] font-normal ${textColor}`}>
+            {isLoyaltyEnabled ? (
+              <span>Loyalty member</span>
+            ) : productType !== "PRESET_FILTER" ? (
+              <div>
+                <p className="text-brand-primary cursor-pointer">Join the loyalty program.</p>
+                <p>Cancel at anytime.</p>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

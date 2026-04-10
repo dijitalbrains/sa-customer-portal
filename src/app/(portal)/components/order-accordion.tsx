@@ -2,26 +2,22 @@
 
 import { useState } from "react";
 import SubscriptionItem from "./subscription-item";
-import type { SubscriptionItemProps } from "./subscription-item";
+import type { OrderView } from "@/lib/types/subscription";
 
-export interface OrderAccordionProps {
-  orderNumber: string;
-  placedDate: string;
-  items: SubscriptionItemProps[];
+interface OrderAccordionProps extends OrderView {
   defaultOpen?: boolean;
 }
 
 export default function OrderAccordion({
   orderNumber,
   placedDate,
-  items,
+  subscriptions,
   defaultOpen = false,
 }: OrderAccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div className="bg-surface-overlay rounded-lg p-4 flex flex-col gap-2">
-      {/* Order Header — white card, clickable */}
       <button
         onClick={() => setOpen(!open)}
         className="bg-surface-base rounded-lg shadow-card flex items-center justify-between px-5 md:px-6 py-4 w-full"
@@ -45,7 +41,6 @@ export default function OrderAccordion({
             </span>
           </div>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/assets/icons/chevron-down.svg"
           alt=""
@@ -55,10 +50,9 @@ export default function OrderAccordion({
         />
       </button>
 
-      {/* Subscription Items — separate white cards, outside accordion header */}
       {open &&
-        items.map((item, i) => (
-          <SubscriptionItem key={i} {...item} />
+        subscriptions.map((subscription, i) => (
+          <SubscriptionItem key={i} {...subscription} />
         ))}
     </div>
   );

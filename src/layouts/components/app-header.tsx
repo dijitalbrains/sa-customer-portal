@@ -28,7 +28,7 @@ export default function Header({ userName, legacyPortalUrl, onMenuClick }: Heade
           href={legacyPortalUrl}
           className="inline-flex items-center px-3 py-1.5 rounded-pill bg-brand-primary text-white text-[12px] font-semibold hover:bg-brand-deep transition-colors"
         >
-          Legacy Portal &rarr;
+          Legacy Version &rarr;
         </a>
         <button className="w-9 h-9 rounded-full bg-surface-overlay flex items-center justify-center hover:bg-border-subtle/30 transition-colors">
           <img src="/assets/icons/cart.svg" alt="Cart" className="w-[18px] h-[18px]" />

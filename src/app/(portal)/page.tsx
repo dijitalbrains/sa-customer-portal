@@ -1,12 +1,29 @@
-import { OrderAccordion } from "@/components/features/filter-renewal";
-import { orderData } from "@/data/orders";
+import { getRenewals } from "@/lib/actions/subscription.actions";
+import OrderAccordion from "./components/order-accordion";
 
-export default function FilterRenewalsPage() {
+export default async function FilterRenewalsPage() {
+  const orders = await getRenewals();
+
+  if (orders.length === 0) {
+    return <EmptyState />;
+  }
+
   return (
-    <div className="flex flex-col gap-4">
-      {orderData.map((order, i) => (
-        <OrderAccordion key={i} {...order} defaultOpen />
+    <div className="flex flex-col gap-3">
+      {orders.map((order, i) => (
+        <OrderAccordion key={i} {...order} defaultOpen={i === 0} />
       ))}
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center justify-center h-full min-h-[400px]">
+      <h2 className="text-2xl font-bold text-text-heading mb-2">No Subscriptions</h2>
+      <p className="text-sm text-text-muted">
+        You don&apos;t have any active subscriptions yet.
+      </p>
     </div>
   );
 }

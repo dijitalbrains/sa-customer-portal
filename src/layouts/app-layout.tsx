@@ -33,7 +33,7 @@ export default function AppLayout({
           legacyPortalUrl={legacyPortalUrl}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <main className="flex-1 overflow-y-auto p-3 md:p-4">
+        <main className="flex-1 overflow-y-auto p-3 md:p-5">
           {children}
         </main>
       </div>
