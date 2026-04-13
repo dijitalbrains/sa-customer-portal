@@ -13,7 +13,7 @@ const archivo = Archivo({
 });
 
 export const metadata: Metadata = {
-  title: "Customer Portal",
+  title: "Customer Portal - Spring Aqua",
   description: "SpringAqua Customer Portal",
 };
 

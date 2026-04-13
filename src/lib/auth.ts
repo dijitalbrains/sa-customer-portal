@@ -45,3 +45,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: Number(process.env.SESSION_MAX_AGE || 30 * 24 * 60 * 60),
   },
 });
+
+export async function requireAuth() {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  return session;
+}
+
+export async function requireUserId(): Promise<number> {
+  const session = await requireAuth();
+  return Number(session.user.id);
+}

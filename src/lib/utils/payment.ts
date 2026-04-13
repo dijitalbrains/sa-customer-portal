@@ -7,36 +7,29 @@ export function getCardStatus(card: {
 }): CardStatus {
   if (card.has_failed) return "FAILED";
 
-  const expMonth = Number(card.exp_month);
-  const expYear = Number(card.exp_year);
-  if (!expMonth || !expYear) return "GOOD";
+  const month = Number(card.exp_month);
+  const year = Number(card.exp_year);
+  if (!month || !year) return "GOOD";
 
-  const expDate = new Date(expYear, expMonth, 0);
+  const expPlusOneMonth = new Date(year, month, 1);
   const now = new Date();
+  const nowPlusOneMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
 
-  if (expDate < now) return "EXPIRED";
-
-  const twoMonthsFromNow = new Date();
-  twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
-  if (expDate < twoMonthsFromNow) return "EXPIRING_SOON";
-
+  if (now > expPlusOneMonth) return "EXPIRED";
+  if (expPlusOneMonth <= nowPlusOneMonth) return "EXPIRING_SOON";
   return "GOOD";
 }
 
 export function getCardStatusText(status: CardStatus): string {
-  switch (status) {
-    case "GOOD":
-      return "in good standing";
-    case "EXPIRED":
-      return "expired";
-    case "FAILED":
-      return "failed";
-    case "EXPIRING_SOON":
-      return "expiring soon";
-  }
+  const map: Record<CardStatus, string> = {
+    GOOD: "in good standing",
+    EXPIRED: "expired",
+    FAILED: "failed",
+    EXPIRING_SOON: "expiring soon",
+  };
+  return map[status];
 }
 
 export function getCardBrandImage(brand: string): string {
-  const slug = brand.toLowerCase().replace(/\s+/g, "-");
-  return `/assets/images/cc-brand/${slug}.png`;
+  return `/assets/images/cc-brand/${brand.toLowerCase().replace(/\s+/g, "-")}.png`;
 }

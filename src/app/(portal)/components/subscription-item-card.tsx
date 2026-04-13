@@ -32,19 +32,19 @@ export default function SubscriptionItemCard({
       }`}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="flex items-baseline gap-1.5 flex-wrap">
-          <span className={`text-[13px] font-bold ${isError ? "text-status-error-text" : "text-text-primary"}`}>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+          <span className={`text-[13px] font-bold truncate ${isError ? "text-status-error-text" : "text-text-primary"}`}>
             {productName}
           </span>
           {nickname && (
             <span className={`text-[12px] font-normal ${mutedColor}`}>({nickname})</span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 ml-auto">
           {isLoyaltyEnabled && <PaymentMethod payment={payment} />}
           {isLoyaltyEnabled && (
-            <p className={`text-[12px] ${textColor}`}>
+            <p className={`text-[12px] whitespace-nowrap ${textColor}`}>
               <span className="font-bold">{price} </span>
               <span className="font-normal">(plus shipping + tax)</span>
             </p>
