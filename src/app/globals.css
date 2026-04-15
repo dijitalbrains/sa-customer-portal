@@ -32,6 +32,11 @@
   --color-status-error-text: #F09595;
   --color-status-scheduled: #EDE9FE;
 
+  /* ─── Admin Theme ─── */
+  --color-admin-bg: #FCEBEB;
+  --color-admin-border: #BC64644D;
+  --color-admin-accent: #791F1F;
+
   /* ─── Typography ─── */
   --font-sans: "Outfit", sans-serif;
   --font-data: "Archivo", sans-serif;
@@ -44,7 +49,7 @@
   --radius-pill: 9999px;
 
   /* ─── Shadows ─── */
-  --shadow-card: 0px 3.5px 5.5px 0px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0px 4px 20px 0px #00305214;
   --shadow-sidebar: 2px 0px 10px 0px rgba(0, 0, 0, 0.05);
   --shadow-topbar: 0px 2px 6px 0px rgba(0, 0, 0, 0.04);
   --shadow-button: 0px 1px 3px 0px rgba(0, 0, 0, 0.08);

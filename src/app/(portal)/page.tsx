@@ -1,5 +1,5 @@
-import { getRenewals } from "@/lib/actions/subscription.actions";
-import OrderAccordion from "./components/order-accordion";
+import { getRenewals } from "@/lib/actions/renewal.actions";
+import Accordion from "./_components/accordion";
 
 export default async function FilterRenewalsPage() {
   const orders = await getRenewals();
@@ -11,7 +11,7 @@ export default async function FilterRenewalsPage() {
   return (
     <div className="flex flex-col gap-3">
       {orders.map((order, i) => (
-        <OrderAccordion key={i} {...order} defaultOpen={i === 0} />
+        <Accordion key={i} {...order} defaultOpen={i === 0} />
       ))}
     </div>
   );

@@ -1,9 +1,9 @@
 "use server";
 
 import { requireUserId } from "@/lib/auth";
-import { getFilterRenewal } from "@/lib/services/subscription-service";
+import { getRenewals as fetchRenewals } from "@/lib/services/renewal-service";
 
 export async function getRenewals() {
   const userId = await requireUserId();
-  return getFilterRenewal(userId);
+  return fetchRenewals(userId);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { ButtonHTMLAttributes } from "react";
+import Link from "next/link";
 
 type ButtonVariant = "primary" | "ghost" | "outline" | "link";
 type ButtonSize = "sm" | "md";
@@ -21,38 +22,39 @@ const sizeStyles: Record<ButtonSize, string> = {
   md: "h-11 px-5 text-[14px]",
 };
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface BaseButtonProps {
   variant?: ButtonVariant;
   size?: ButtonSize;
   loading?: boolean;
   loadingText?: string;
+  className?: string;
+  children?: React.ReactNode;
 }
+
+type ButtonProps =
+  | (BaseButtonProps & { href: string } & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "className" | "children">)
+  | (BaseButtonProps & { href?: undefined } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children">);
 
 export default function Button({
   variant = "primary",
   size = "md",
   loading = false,
   loadingText = "Loading...",
-  disabled,
   children,
   className = "",
   ...props
 }: ButtonProps) {
-  const isDisabled = disabled || loading;
+  const baseClass = `
+    inline-flex items-center justify-center gap-2 rounded-pill font-semibold
+    transition-colors whitespace-nowrap shrink-0 cursor-pointer
+    disabled:opacity-60 disabled:cursor-not-allowed
+    ${variantStyles[variant]}
+    ${variant !== "link" ? sizeStyles[size] : ""}
+    ${className}
+  `;
 
-  return (
-    <button
-      disabled={isDisabled}
-      className={`
-        inline-flex items-center justify-center gap-2 rounded-pill font-semibold
-        transition-colors whitespace-nowrap shrink-0
-        disabled:opacity-60 disabled:cursor-not-allowed
-        ${variantStyles[variant]}
-        ${variant !== "link" ? sizeStyles[size] : ""}
-        ${className}
-      `}
-      {...props}
-    >
+  const content = (
+    <>
       {loading && (
         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -60,6 +62,22 @@ export default function Button({
         </svg>
       )}
       {loading ? loadingText : children}
+    </>
+  );
+
+  if ("href" in props && props.href) {
+    const { href, ...anchorProps } = props;
+    return (
+      <Link href={href} className={baseClass} {...anchorProps}>
+        {content}
+      </Link>
+    );
+  }
+
+  const { disabled, ...buttonProps } = props as ButtonHTMLAttributes<HTMLButtonElement>;
+  return (
+    <button disabled={disabled || loading} className={baseClass} {...buttonProps}>
+      {content}
     </button>
   );
 }

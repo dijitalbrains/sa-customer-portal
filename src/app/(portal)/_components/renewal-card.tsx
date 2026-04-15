@@ -2,10 +2,10 @@ import Link from "next/link";
 import Badge from "@/components/ui/badge";
 import ProgressBar from "@/components/ui/progress-bar";
 import PaymentMethod from "@/components/shared/payment-method";
-import type { SubscriptionItem } from "@/lib/types/subscription";
+import type { RenewalListItem } from "@/lib/types/subscription";
 
-export default function SubscriptionItemCard({
-  detailUrl,
+export default function RenewalCard({
+  subscriptionId,
   productName,
   nickname,
   price,
@@ -18,7 +18,7 @@ export default function SubscriptionItemCard({
   productType,
   progress,
   payment,
-}: SubscriptionItem) {
+}: RenewalListItem) {
   const hasFailedCard = isLoyaltyEnabled && payment?.type === "card" && payment.isFailed;
   const isError = status === "expired" || hasFailedCard;
   const textColor = isError ? "text-status-error-text" : "text-text-primary";
@@ -26,15 +26,18 @@ export default function SubscriptionItemCard({
 
   return (
     <Link
-      href={detailUrl}
+      href={`/detail/${subscriptionId}`}
       className={`bg-surface-overlay rounded-2xl border p-5 md:p-6 flex flex-col gap-4 flex-1 min-w-0 hover:border-brand-primary transition-colors ${
         isError ? "border-status-error-text/40" : "border-border-subtle/10"
       }`}
     >
-      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-          <span className={`text-[13px] font-bold truncate ${isError ? "text-status-error-text" : "text-text-primary"}`}>
+          <span
+            className={`text-[13px] font-bold truncate ${
+              isError ? "text-status-error-text" : "text-text-primary"
+            }`}
+          >
             {productName}
           </span>
           {nickname && (
@@ -53,7 +56,6 @@ export default function SubscriptionItemCard({
         </div>
       </div>
 
-      {/* Progress */}
       <div>
         <div className="flex items-center justify-between mb-2">
           <span className={`text-[12px] font-medium ${mutedColor}`}>{frequency}</span>
@@ -64,7 +66,6 @@ export default function SubscriptionItemCard({
         <ProgressBar percent={progress} variant={isError ? "error" : "default"} />
       </div>
 
-      {/* Details */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
         <div className="flex flex-col gap-1">
           <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>

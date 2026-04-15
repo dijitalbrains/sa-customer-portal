@@ -1,21 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import SubscriptionItem from "./subscription-item";
+import Renewal from "./renewal";
 import Badge from "@/components/ui/badge";
-import type { Order } from "@/lib/types/subscription";
+import type { RenewalOrder } from "@/lib/types/subscription";
 
-interface OrderAccordionProps extends Order {
+interface AccordionProps extends RenewalOrder {
   defaultOpen?: boolean;
 }
 
-export default function OrderAccordion({
+export default function Accordion({
   placedDate,
   hasExpiredItem,
   hasFailedCard,
   subscriptions,
   defaultOpen = false,
-}: OrderAccordionProps) {
+}: AccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -47,7 +47,7 @@ export default function OrderAccordion({
 
       {open &&
         subscriptions.map((subscription, i) => (
-          <SubscriptionItem key={i} {...subscription} />
+          <Renewal key={i} {...subscription} />
         ))}
     </div>
   );
