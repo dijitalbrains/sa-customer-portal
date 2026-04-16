@@ -23,7 +23,6 @@ export default function PaymentMethodRow({ payment, href }: PaymentMethodRowProp
           <span className="text-[13px] font-medium text-text-muted">No payment method</span>
         )}
       </div>
-      <img src="/assets/icons/chevron-collapsed.svg" alt="" className="shrink-0" />
     </Link>
   );
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/services/activity-service";
 
 type Session = {
   userId: number;
@@ -18,31 +19,6 @@ async function getSession(): Promise<Session> {
   const userId = Number(session.user.id);
   const adminId = session.adminId ?? 0;
   return { userId, adminId, actorId: adminId > 0 ? adminId : userId, isAdmin: adminId > 0 };
-}
-
-interface ActivityLog {
-  userId: number;
-  actorId: number;
-  key: string;
-  object: "Subscription" | "SubscriptionItem";
-  objectId: number;
-  value?: string | null;
-}
-
-async function logActivity({ userId, actorId, key, object, objectId, value }: ActivityLog) {
-  await prisma.activities.create({
-    data: {
-      user_id: userId,
-      actor_id: actorId,
-      key,
-      value: value ?? null,
-      location: "portal",
-      object,
-      object_id: objectId,
-      created_at: new Date(),
-      updated_at: new Date(),
-    },
-  });
 }
 
 async function ensureOwnsSubscription(subscriptionId: number, userId: number) {

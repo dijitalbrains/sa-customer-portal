@@ -68,15 +68,12 @@ export default function NicknameRow({ subscriptionId, initialNickname }: Nicknam
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="flex items-center justify-between gap-3 w-full text-left cursor-pointer"
+          className="flex items-center gap-3 w-full text-left cursor-pointer"
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <span className={LABEL_CLASS}>Nickname</span>
-            <span className="text-[13px] font-medium text-text-primary truncate">
-              {saved || "—"}
-            </span>
-          </div>
-          <img src="/assets/icons/chevron-collapsed.svg" alt="" className="shrink-0" />
+          <span className={LABEL_CLASS}>Nickname</span>
+          <span className="text-[13px] font-medium text-text-primary truncate">
+            {saved || "—"}
+          </span>
         </button>
       )}
     </div>

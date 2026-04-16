@@ -38,7 +38,7 @@ export default function RenewalDetailCard({
   const showPauseButton = isLoyaltyEnabled && !item.isPending;
 
   return (
-    <article className="bg-surface-base rounded-2xl shadow-card overflow-hidden flex flex-col flex-1 min-w-0">
+    <article className="bg-surface-base rounded-2xl shadow-card overflow-hidden flex flex-col w-full max-w-[460px] sm:w-[460px] shrink-0">
       <div className={`h-1 w-full ${stripColor}`} />
 
       <div className="p-5 flex flex-col gap-5">
@@ -52,19 +52,21 @@ export default function RenewalDetailCard({
             Need this item right now?
           </button>
 
-          <Button href={`/edit-preferences/${item.id}`} className="w-full">
-            Edit Preferences
-          </Button>
-
-          {showPauseButton && (
-            <Button
-              href={`/pause-subscription/${subscriptionId}`}
-              variant="outline"
-              className="w-full"
-            >
-              Pause Subscription
+          <div className="flex gap-3">
+            <Button href={`/edit-preferences/${item.id}`} className="flex-1">
+              Edit Preferences
             </Button>
-          )}
+
+            {showPauseButton && (
+              <Button
+                href={`/pause-subscription/${subscriptionId}`}
+                variant="outline"
+                className="flex-1"
+              >
+                Pause Subscription
+              </Button>
+            )}
+          </div>
         </div>
 
         {showLoyaltyCta && <LoyaltyCta subscriptionId={subscriptionId} />}

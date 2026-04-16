@@ -44,12 +44,16 @@ export default async function RenewalDetailPage({ params }: DetailPageProps) {
       </div>
 
       <div className="flex flex-col gap-4">
-        <section className="bg-surface-base rounded-2xl shadow-card p-4 flex flex-col gap-2">
-          <NicknameRow subscriptionId={detail.id} initialNickname={detail.nickname} />
-          <SettingRow label="Setup" value={setupLabel} href={`/edit-setup/${detail.id}`} />
+        <section className="bg-surface-base rounded-2xl shadow-card p-4 flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <NicknameRow subscriptionId={detail.id} initialNickname={detail.nickname} />
+          </div>
+          <div className="flex-1">
+            <SettingRow label="Setup" value={setupLabel} href={`/edit-setup/${detail.id}`} />
+          </div>
         </section>
 
-        <div className="flex flex-col xl:flex-row items-stretch gap-8">
+        <div className="flex flex-wrap items-stretch justify-center  gap-5 sm:gap-10">
           {detail.items.map((item) => (
             <RenewalDetailCard
               key={item.id}
