@@ -57,3 +57,61 @@
   /* ─── Gradients ─── */
   --background-image-brand-gradient: linear-gradient(90deg, #3792DE -5.85%, #4EC7F2 108.51%);
 }
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  [data-print-root] {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  [data-print-root] main {
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  [data-print-invoice] {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 100% !important;
+    position: static !important;
+  }
+
+  [data-print-scroll] {
+    overflow: visible !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  [data-print-grid] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  [data-print-row] {
+    flex-direction: row !important;
+  }
+
+  [data-print-row] > * {
+    flex: 1 1 50% !important;
+    min-width: 0 !important;
+    max-width: 50% !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+}

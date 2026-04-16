@@ -45,7 +45,7 @@ export default function RenewalCard({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 ml-auto">
-          {isLoyaltyEnabled && <PaymentMethod payment={payment} />}
+          {isLoyaltyEnabled && <PaymentMethod payment={payment} showStatus />}
           {isLoyaltyEnabled && (
             <p className={`text-[12px] whitespace-nowrap ${textColor}`}>
               <span className="font-bold">{price} </span>

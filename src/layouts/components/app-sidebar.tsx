@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Filter Renewals", icon: "/assets/icons/nav-filter.svg" },
+  { href: "/orders", label: "Orders", icon: "/assets/icons/nav-orders.svg" },
   { href: "/my-account", label: "My Account", icon: "/assets/icons/user.svg" },
   { href: "/renewal-timeline", label: "Renewal Timeline", icon: "/assets/icons/timeline.svg" },
   { href: "/support", label: "Support", icon: "/assets/icons/support.svg" },
@@ -35,6 +36,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       )}
 
       <aside
+        data-print-hide=""
         className={`
           fixed lg:static inset-y-0 left-0 z-50
           w-[268px] bg-surface-base flex flex-col h-full shrink-0

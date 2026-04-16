@@ -18,7 +18,7 @@ export default function PaymentMethodRow({ payment, href }: PaymentMethodRowProp
           Payment Method
         </span>
         {payment ? (
-          <PaymentMethodCmp payment={payment} />
+          <PaymentMethodCmp payment={payment} showStatus />
         ) : (
           <span className="text-[13px] font-medium text-text-muted">No payment method</span>
         )}

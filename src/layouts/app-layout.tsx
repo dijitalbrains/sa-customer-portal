@@ -20,19 +20,21 @@ export default function AppLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div data-print-root="" className="flex h-screen overflow-hidden bg-white">
       <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
         {adminId != null && adminId > 0 && (
-          <div className="bg-status-warning px-4 py-1.5 text-center text-[12px] font-medium text-text-heading">
+          <div data-print-hide="" className="bg-status-warning px-4 py-1.5 text-center text-[12px] font-medium text-text-heading">
             Admin viewing as customer
           </div>
         )}
-        <AppHeader
-          userName={userName}
-          legacyPortalUrl={legacyPortalUrl}
-          onMenuClick={() => setSidebarOpen(true)}
-        />
+        <div data-print-hide="">
+          <AppHeader
+            userName={userName}
+            legacyPortalUrl={legacyPortalUrl}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+        </div>
         <main className="flex-1 overflow-y-auto p-3 md:p-5">
           {children}
         </main>

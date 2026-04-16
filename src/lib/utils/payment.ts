@@ -1,4 +1,4 @@
-import type { PaymentMethod } from "@/lib/types/subscription";
+import type { PaymentMethod } from "@/lib/types/payment";
 
 export type CardStatus = "GOOD" | "EXPIRED" | "EXPIRING_SOON" | "FAILED";
 
@@ -69,4 +69,36 @@ export function getCardStatusText(status: CardStatus): string {
 
 export function getCardBrandImage(brand: string): string {
   return `/assets/images/cc-brand/${brand.toLowerCase().replace(/\s+/g, "-")}.png`;
+}
+
+interface OrderPaymentJson {
+  user_stripe_source: unknown;
+  user_bank_account: unknown;
+}
+
+interface StripeJson { brand?: string; last4?: string }
+interface BankJson { bank_name?: string; last4?: string }
+
+export function getOrderPayment(order: OrderPaymentJson): PaymentMethod {
+  const stripe = order.user_stripe_source as StripeJson | null;
+  const bank = order.user_bank_account as BankJson | null;
+
+  if (stripe?.brand) {
+    return {
+      type: "card",
+      brandImage: getCardBrandImage(stripe.brand),
+      last4: stripe.last4 ?? "",
+      statusText: "in good standing",
+      isFailed: false,
+      isExpiringSoon: false,
+    };
+  }
+  if (bank?.bank_name) {
+    return {
+      type: "bank",
+      bankName: bank.bank_name,
+      last4: bank.last4 ?? "",
+    };
+  }
+  return null;
 }
