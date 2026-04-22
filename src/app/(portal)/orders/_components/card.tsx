@@ -14,7 +14,7 @@ export default function Card({ order, isActive }: CardProps) {
       href={`/orders?id=${order.id}`}
       className={`block bg-surface-base rounded-[12px] overflow-hidden cursor-pointer transition-shadow relative ${
         isActive
-          ? "border-2 border-brand-primary shadow-[0px_4px_16px_0px_rgba(0,48,82,0.1)]"
+          ? "bg-surface-overlay border-2 border-brand-primary shadow-[0px_4px_16px_0px_rgba(0,48,82,0.1)]"
           : "shadow-[0px_4px_20px_0px_rgba(0,48,82,0.08)] hover:shadow-[0px_4px_16px_0px_rgba(0,48,82,0.12)]"
       }`}
     >

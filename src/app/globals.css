@@ -56,8 +56,106 @@
 
   /* ─── Gradients ─── */
   --background-image-brand-gradient: linear-gradient(90deg, #3792DE -5.85%, #4EC7F2 108.51%);
+  --background-image-avatar-gradient: linear-gradient(90deg, #4EC7F2 0%, #9FEAFF 100%);
 }
 
+ /* ─── Shadows ─── */
+.Toastify__toast {
+  min-height: 50px !important;
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+}
+
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.Toastify__toast-icon {
+  width: 18px !important;
+  margin-inline-end: 8px !important;
+}
+
+.Toastify__close-button {
+  align-self: center !important;
+}
+
+ /* ─── International Input ─── */
+.phone-field .iti {
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+}
+
+.phone-field .iti__tel-input {
+  flex: 1;
+  width: 100% !important;
+  border: 0 !important;
+  padding: 0 0 0 4px !important;
+  height: auto !important;
+  line-height: 1.4 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: var(--color-text-primary) !important;
+}
+
+.phone-field .iti__selected-dial-code {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.phone-field .iti__country-container {
+  position: static !important;
+  height: auto !important;
+  display: flex;
+  align-items: center;
+}
+
+.phone-field .iti__selected-country,
+.phone-field .iti__selected-country-primary {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px;
+  background: transparent !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  height: auto !important;
+}
+
+.phone-field .iti__selected-dial-code {
+  padding-inline: 2px;
+}
+
+.iti__dropdown-content {
+  z-index: 9999 !important;
+}
+
+.iti__search-input,
+input.iti__search-input {
+  padding: 8px 30px 8px 36px !important;
+  border: 0 !important;
+  outline: none !important;
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.iti__country {
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+ /* ─── Print Preview ─── */
 @media print {
   body {
     background: white !important;

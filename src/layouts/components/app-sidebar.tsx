@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/", label: "Filter Renewals", icon: "/assets/icons/nav-filter.svg" },
   { href: "/orders", label: "Orders", icon: "/assets/icons/nav-orders.svg" },
-  { href: "/my-account", label: "My Account", icon: "/assets/icons/user.svg" },
+  { href: "/account", label: "My Account", icon: "/assets/icons/user.svg" },
   { href: "/renewal-timeline", label: "Renewal Timeline", icon: "/assets/icons/timeline.svg" },
   { href: "/support", label: "Support", icon: "/assets/icons/support.svg" },
 ];
