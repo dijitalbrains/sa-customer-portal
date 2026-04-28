@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame">
+<rect width="20" height="20" rx="6" fill="var(--fill-0, #3792DE)"/>
+<path id="+" d="M6 10.928V8.896H13.44V10.928H6ZM8.688 6H10.768V13.792H8.688V6Z" fill="var(--fill-0, white)"/>
+</g>
+</svg>

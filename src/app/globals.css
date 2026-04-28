@@ -16,6 +16,9 @@
 
   /* ─── Borders ─── */
   --color-border-subtle: #C1C6D7;
+  --color-border-card: rgba(193, 198, 215, 0.1);
+  --color-border-field-admin: #DCB4B4;
+  --color-border-danger: #E24B4A;
 
   /* ─── Surfaces ─── */
   --color-surface-overlay: #F0F8FF;
@@ -44,15 +47,18 @@
   /* ─── Border Radius ─── */
   --radius-sm: 4px;
   --radius-md: 8px;
+  --radius-card: 16px;
   --radius-lg: 15px;
   --radius-xl: 22px;
   --radius-pill: 9999px;
 
   /* ─── Shadows ─── */
   --shadow-card: 0px 4px 20px 0px #00305214;
+  --shadow-card-soft: 0px 3.5px 2.75px 0px rgba(0, 0, 0, 0.02);
   --shadow-sidebar: 2px 0px 10px 0px rgba(0, 0, 0, 0.05);
   --shadow-topbar: 0px 2px 6px 0px rgba(0, 0, 0, 0.04);
   --shadow-button: 0px 1px 3px 0px rgba(0, 0, 0, 0.08);
+  --shadow-field: 0px 1px 1.5px 0px rgba(0, 0, 0, 0.04);
 
   /* ─── Gradients ─── */
   --background-image-brand-gradient: linear-gradient(90deg, #3792DE -5.85%, #4EC7F2 108.51%);

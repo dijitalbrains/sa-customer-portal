@@ -1,0 +1,7 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Frame">
+<rect x="0.5" y="0.5" width="19" height="19" rx="5.5" fill="var(--fill-0, #FFF8F8)"/>
+<rect x="0.5" y="0.5" width="19" height="19" rx="5.5" stroke="var(--stroke-0, #DCB4B4)"/>
+<path id="&#226;&#136;&#146;" d="M7 10.134V9H12.936V10.134H7Z" fill="var(--fill-0, #BC6464)"/>
+</g>
+</svg>

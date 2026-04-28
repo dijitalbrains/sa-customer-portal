@@ -1,10 +1,12 @@
 import type { PaymentMethod } from "./payment";
+import type { TaxSource } from "@/lib/utils/tax";
 
 export type { PaymentMethod };
 
 export interface PriceLine {
   label: string;
   amount: number;
+  originalAmount?: number | null;
 }
 
 export interface LinkedProductOption {
@@ -44,38 +46,47 @@ export interface RenewalOrder {
   subscriptions: RenewalListGroup[];
 }
 
+export interface RenewalSubscription {
+  id: number;
+  nickname: string;
+  technology: string;
+  zone: number;
+  isLoyaltyEnabled: boolean;
+  isShowerFilter: boolean;
+  canAddP1Filter: boolean;
+}
+
 export interface RenewalItem {
   id: number;
   productName: string;
+  productImage: string;
   productType: string;
-  technology: string;
-  zone: number;
   status: "active" | "expired" | "pending";
   isPending: boolean;
+  isP1Filter: boolean;
   nextReminderDate: string;
   shipTo: string;
-  pricingLines: PriceLine[];
-  subTotal: number;
-  shipping: number;
-  taxPercent: number;
-  tax: number;
-  total: number;
-  isP1Filter: boolean;
   payment: PaymentMethod;
   quantity: number;
   linkedProductName: string | null;
   linkedProductPrice: number | null;
   linkedProductQuantity: number | null;
+
+  pricingLines: PriceLine[];
+  subTotal: number;
+  shipping: number;
+  taxPercent: number;
+  tax: number;
+  estimatedTax: number;
+  taxExempted: number | null;
+  taxSource: TaxSource | null;
+  total: number;
+
+  subscription: RenewalSubscription;
 }
 
-export interface SubscriptionDetail {
-  id: number;
-  technology: string;
-  nickname: string;
-  zone: number;
-  isLoyaltyEnabled: boolean;
-  canAddP1Filter: boolean;
-  isShowerFilter: boolean;
+export interface RenewalDetailResponse {
+  subscriptionItems: RenewalItem[];
+  subscriptionFlash: boolean;
   availableLinkedProducts: LinkedProductOption[];
-  items: RenewalItem[];
 }

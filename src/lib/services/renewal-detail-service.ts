@@ -3,56 +3,55 @@ import { formatShortDate } from "@/lib/utils/date";
 import { formatAddress } from "@/lib/utils/address";
 import { getValidityStatus } from "@/lib/utils/subscription";
 import { getPaymentMethod } from "@/lib/utils/payment";
+import { calculateTax } from "@/lib/services/tax-service";
+import { getAvailableLinkedProducts } from "@/lib/services/linked-products-service";
+import { applyLoyaltyDiscount, type LoyaltyPrice } from "@/lib/services/pricing-service";
 import type {
-  SubscriptionDetail,
-  RenewalItem,
   PriceLine,
-  LinkedProductOption,
+  RenewalDetailResponse,
+  RenewalItem,
+  RenewalSubscription,
 } from "@/lib/types/subscription";
 
 type RawSubscription = NonNullable<Awaited<ReturnType<typeof fetchSubscription>>>;
 type RawSubscriptionItem = RawSubscription["subscription_items"][number];
+type RawProduct = RawSubscriptionItem["products_subscription_items_product_idToproducts"];
 
 const SHOWER_FILTER_KEY = "shower-filter";
+const P1_FILTER_KEY = "p1-filter";
 const P1_INELIGIBLE_PRODUCT_KEYS = new Set([
   "shower-filter",
   "me-shower-adaptor",
   "me-hygiene-adaptor",
 ]);
-const LINKED_PRODUCT_KEYS = [
-  "p1-filter",
-  "p2-p3-filters",
-  "p2-p3-p3-p4-filters",
-  "p3-filter",
-  "p3-p4-filters",
-  "p4-filter",
-];
 
 export async function getRenewalDetail(
   subscriptionId: number,
   userId: number,
   isAdmin: boolean,
-): Promise<SubscriptionDetail | null> {
-  const [sub, availableLinkedProducts] = await Promise.all([
+): Promise<RenewalDetailResponse | null> {
+  const [sub, availableLinkedProducts, isUserTaxExempted] = await Promise.all([
     fetchSubscription(subscriptionId, userId),
-    isAdmin ? fetchAvailableLinkedProducts() : Promise.resolve([]),
+    isAdmin ? getAvailableLinkedProducts() : Promise.resolve([]),
+    fetchUserExemption(userId),
   ]);
   if (!sub) return null;
-  return toDetail(sub, availableLinkedProducts);
+
+  const subscription = toSubscription(sub);
+  const subscriptionItems = await Promise.all(
+    sub.subscription_items.map((item) => toRenewalItem(item, subscription, isUserTaxExempted)),
+  );
+
+  return {
+    subscriptionItems,
+    subscriptionFlash: false,
+    availableLinkedProducts,
+  };
 }
 
-async function fetchAvailableLinkedProducts(): Promise<LinkedProductOption[]> {
-  const rows = await prisma.products.findMany({
-    where: { key: { in: LINKED_PRODUCT_KEYS }, deleted_at: null },
-    select: { id: true, key: true, name: true, price: true },
-    orderBy: { name: "asc" },
-  });
+// ─── Queries ─────────────────────────────────────────────────────────────────
 
-  const noFilter: LinkedProductOption = { id: null, key: null, name: "No Zone Filter", price: 0 };
-  return [noFilter, ...rows.map((r) => ({ id: r.id, key: r.key, name: r.name, price: r.price ?? 0 }))];
-}
-
-async function fetchSubscription(subscriptionId: number, userId: number) {
+function fetchSubscription(subscriptionId: number, userId: number) {
   return prisma.subscriptions.findFirst({
     where: { id: subscriptionId, user_id: userId, deleted_at: null },
     include: {
@@ -62,7 +61,12 @@ async function fetchSubscription(subscriptionId: number, userId: number) {
         include: {
           products_subscription_items_product_idToproducts: true,
           products_subscription_items_linked_product_idToproducts: true,
-          user_addresses: { include: { states: true } },
+          user_addresses: {
+            include: {
+              states: true,
+              countries: { select: { code: true, tax_source: true, tax_percent: true } },
+            },
+          },
           user_stripe_sources: true,
           user_bank_accounts: true,
         },
@@ -71,94 +75,154 @@ async function fetchSubscription(subscriptionId: number, userId: number) {
   });
 }
 
-function toDetail(
-  sub: RawSubscription,
-  availableLinkedProducts: LinkedProductOption[],
-): SubscriptionDetail {
-  const items = sub.subscription_items.map((item) => toRenewalItem(item, sub));
-  const hasP1Filter = items.some((i) => i.isP1Filter);
+async function fetchUserExemption(userId: number): Promise<boolean> {
+  const user = await prisma.users.findFirst({
+    where: { id: userId },
+    select: { is_tax_exempted: true },
+  });
+  return user?.is_tax_exempted ?? false;
+}
+
+// ─── Mappers ─────────────────────────────────────────────────────────────────
+
+function toSubscription(sub: RawSubscription): RenewalSubscription {
   const baseProductKey = sub.products.key ?? "";
+  const hasP1Filter = sub.subscription_items.some(
+    (i) => i.products_subscription_items_product_idToproducts.key === P1_FILTER_KEY,
+  );
 
   return {
     id: Number(sub.id),
-    technology: sub.products.technology || sub.products.name,
     nickname: sub.nickname ?? "",
+    technology: sub.products.technology || sub.products.name,
     zone: sub.zone,
     isLoyaltyEnabled: sub.is_loyalty_enabled,
-    canAddP1Filter: !hasP1Filter && !P1_INELIGIBLE_PRODUCT_KEYS.has(baseProductKey),
     isShowerFilter: baseProductKey === SHOWER_FILTER_KEY,
-    availableLinkedProducts,
-    items,
+    canAddP1Filter: !hasP1Filter && !P1_INELIGIBLE_PRODUCT_KEYS.has(baseProductKey),
   };
 }
 
-function toRenewalItem(item: RawSubscriptionItem, sub: RawSubscription): RenewalItem {
+async function toRenewalItem(
+  item: RawSubscriptionItem,
+  subscription: RenewalSubscription,
+  isUserTaxExempted: boolean,
+): Promise<RenewalItem> {
   const product = item.products_subscription_items_product_idToproducts;
   const linked = item.products_subscription_items_linked_product_idToproducts;
+
+  const productPricing = priceWithLoyalty(product, subscription.isLoyaltyEnabled);
+  const linkedPricing = linked ? priceWithLoyalty(linked, subscription.isLoyaltyEnabled) : null;
+
+  const subTotal = calcSubTotal(item, productPricing, linkedPricing);
+  const shipping = product.renewal_shipping_price ?? product.shipping_price ?? 0;
+
+  const taxBreakdown = await calculateTax({
+    subtotal: subTotal,
+    address: item.user_addresses
+      ? {
+          zip: item.user_addresses.zip,
+          city: item.user_addresses.city,
+          street: item.user_addresses.street,
+          countries: item.user_addresses.countries,
+        }
+      : null,
+    isUserTaxExempted,
+  });
+
   const status = getValidityStatus(item.ends_at);
   const isPending = status === "PENDING";
   const isExpired = status === "EXPIRED";
 
-  const subTotal = calcSubTotal(item);
-  const shipping = product.renewal_shipping_price ?? product.shipping_price ?? 0;
-  const taxPercent = 0;
-  const tax = Math.round(subTotal * taxPercent) / 100;
-  const total = Math.round((subTotal + shipping + tax) * 100) / 100;
-
   return {
     id: Number(item.id),
     productName: product.name,
+    productImage: buildImageUrl(product.image),
     productType: product.type ?? "",
-    technology: sub.products.technology || sub.products.name,
-    zone: sub.zone,
     status: isExpired ? "expired" : isPending ? "pending" : "active",
     isPending,
+    isP1Filter: product.key === P1_FILTER_KEY,
     nextReminderDate: isPending
       ? "Pending Install"
-      : formatShortDate(sub.is_loyalty_enabled ? item.ends_at : item.upcoming_reminder),
+      : formatShortDate(subscription.isLoyaltyEnabled ? item.ends_at : item.upcoming_reminder),
     shipTo: formatAddress(item.user_addresses),
-    pricingLines: buildPricingLines(item, product, linked, sub.zone),
-    subTotal,
-    shipping,
-    taxPercent,
-    tax,
-    total,
-    isP1Filter: product.key === "p1-filter",
     payment: getPaymentMethod(item),
     quantity: item.quantity,
     linkedProductName: linked?.name ?? null,
-    linkedProductPrice: linked?.price ?? null,
+    linkedProductPrice: linkedPricing?.price ?? null,
     linkedProductQuantity: item.linked_product_quantity ?? null,
+
+    pricingLines: buildPricingLines(item, product, linked, subscription.zone, productPricing, linkedPricing),
+    subTotal,
+    shipping,
+    taxPercent: taxBreakdown.taxPercent,
+    tax: taxBreakdown.tax,
+    estimatedTax: taxBreakdown.estimatedTax,
+    taxExempted: taxBreakdown.taxExempted,
+    taxSource: taxBreakdown.source,
+    total: round2(subTotal + shipping + taxBreakdown.tax),
+
+    subscription,
   };
 }
 
-function calcSubTotal(item: RawSubscriptionItem): number {
-  const product = item.products_subscription_items_product_idToproducts;
-  const linked = item.products_subscription_items_linked_product_idToproducts;
-  const main = (product.price ?? 0) * item.quantity;
+// ─── Calculations ────────────────────────────────────────────────────────────
+
+function calcSubTotal(
+  item: RawSubscriptionItem,
+  product: LoyaltyPrice,
+  linked: LoyaltyPrice | null,
+): number {
+  const main = product.price * item.quantity;
   const linkedQty = (item.linked_product_quantity ?? 1) * item.quantity;
-  const linkedTotal = linked ? (linked.price ?? 0) * linkedQty : 0;
-  return Math.round((main + linkedTotal) * 100) / 100;
+  const linkedTotal = linked ? linked.price * linkedQty : 0;
+  return round2(main + linkedTotal);
 }
 
 function buildPricingLines(
   item: RawSubscriptionItem,
-  product: RawSubscriptionItem["products_subscription_items_product_idToproducts"],
-  linked: RawSubscriptionItem["products_subscription_items_linked_product_idToproducts"],
+  product: RawProduct,
+  linked: RawProduct | null,
   zone: number,
+  productPricing: LoyaltyPrice,
+  linkedPricing: LoyaltyPrice | null,
 ): PriceLine[] {
-  const lines: PriceLine[] = [
-    { label: product.name, amount: (product.price ?? 0) * item.quantity },
-  ];
+  const lines: PriceLine[] = [linePrice(product.name, productPricing, item.quantity)];
 
-  if (linked) {
+  if (linked && linkedPricing) {
     const linkedQty = (item.linked_product_quantity ?? 1) * item.quantity;
-    lines.push({
-      label: `Zone ${zone} (${linked.name})`,
-      amount: (linked.price ?? 0) * linkedQty,
-    });
+    lines.push(linePrice(`Zone ${zone} (${linked.name})`, linkedPricing, linkedQty));
   }
 
   return lines;
 }
 
+function linePrice(label: string, pricing: LoyaltyPrice, quantity: number): PriceLine {
+  return {
+    label,
+    amount: round2(pricing.price * quantity),
+    originalAmount:
+      pricing.actualPrice !== null ? round2(pricing.actualPrice * quantity) : null,
+  };
+}
+
+function priceWithLoyalty(product: RawProduct, isLoyaltyEnabled: boolean): LoyaltyPrice {
+  return applyLoyaltyDiscount({
+    rawPrice: product.price ?? null,
+    loyaltyDiscountUnit: product.loyalty_discount_unit ?? null,
+    loyaltyDiscountValue:
+      product.loyalty_discount_value !== null ? Number(product.loyalty_discount_value) : null,
+    isLoyaltyEnabled,
+  });
+}
+
+// ─── Utilities ───────────────────────────────────────────────────────────────
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function buildImageUrl(filename: string | null): string {
+  if (!filename) return "/assets/images/product-placeholder.svg";
+  const base = process.env.LANDING_URL ?? "";
+  return `${base}/images/${filename}`;
+}

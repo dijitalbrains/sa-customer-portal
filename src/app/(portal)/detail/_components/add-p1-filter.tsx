@@ -21,9 +21,9 @@ export default function AddP1Filter({ subscriptionId }: AddP1FilterProps) {
       type="button"
       onClick={handleAdd}
       disabled={pending}
-      className="w-full text-center py-3 rounded-lg border border-dashed border-brand-primary text-[13px] font-semibold text-brand-primary hover:bg-brand-surface transition-colors disabled:opacity-60 cursor-pointer"
+      className="inline-flex items-center justify-center h-[38px] px-4 py-3 rounded-pill border-[0.5px] border-brand-primary text-sm font-semibold text-brand-primary hover:bg-brand-surface transition-colors cursor-pointer disabled:opacity-60 whitespace-nowrap"
     >
-      {pending ? "Adding..." : "+ Add P1 Filter"}
+      {pending ? "Adding…" : "+ Add P1 Filter"}
     </button>
   );
 }
