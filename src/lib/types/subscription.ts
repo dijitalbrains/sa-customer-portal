@@ -17,6 +17,7 @@ export interface LinkedProductOption {
 }
 
 export interface RenewalListItem {
+  id: number;
   subscriptionId: number;
   productName: string;
   nickname: string;

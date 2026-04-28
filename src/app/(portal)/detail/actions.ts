@@ -2,24 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/services/activity-service";
-
-type Session = {
-  userId: number;
-  adminId: number;
-  actorId: number;
-  isAdmin: boolean;
-};
-
-async function getSession(): Promise<Session> {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  const userId = Number(session.user.id);
-  const adminId = session.adminId ?? 0;
-  return { userId, adminId, actorId: adminId > 0 ? adminId : userId, isAdmin: adminId > 0 };
-}
 
 async function ensureOwnsSubscription(subscriptionId: number, userId: number) {
   const sub = await prisma.subscriptions.findFirst({
@@ -42,7 +27,7 @@ async function ensureOwnsItem(itemId: number, userId: number) {
 }
 
 export async function updateNickname(subscriptionId: number, nickname: string) {
-  const { userId } = await getSession();
+  const { userId } = await requireSession();
   await ensureOwnsSubscription(subscriptionId, userId);
 
   await prisma.subscriptions.update({
@@ -64,7 +49,7 @@ export async function updateItemAdmin({
   linkedProductId,
   linkedProductQuantity,
 }: AdminUpdatePayload) {
-  const { userId, isAdmin } = await getSession();
+  const { userId, isAdmin } = await requireSession();
   if (!isAdmin) throw new Error("Admin only");
 
   await ensureOwnsItem(itemId, userId);
@@ -94,7 +79,7 @@ export async function updateItemAdmin({
 }
 
 export async function removeSubscription(subscriptionId: number) {
-  const { userId, actorId } = await getSession();
+  const { userId, actorId } = await requireSession();
   await ensureOwnsSubscription(subscriptionId, userId);
 
   const now = new Date();
@@ -123,7 +108,7 @@ export async function removeSubscription(subscriptionId: number) {
 }
 
 export async function removeSubscriptionItem(itemId: number) {
-  const { userId, actorId, isAdmin } = await getSession();
+  const { userId, actorId, isAdmin } = await requireSession();
   if (!isAdmin) throw new Error("Admin only");
   await ensureOwnsItem(itemId, userId);
 
@@ -159,7 +144,7 @@ export async function removeSubscriptionItem(itemId: number) {
 }
 
 export async function addP1Filter(subscriptionId: number) {
-  const { userId, actorId, isAdmin } = await getSession();
+  const { userId, actorId, isAdmin } = await requireSession();
   if (!isAdmin) throw new Error("Admin only");
   await ensureOwnsSubscription(subscriptionId, userId);
 

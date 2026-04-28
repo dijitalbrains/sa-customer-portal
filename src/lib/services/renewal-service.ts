@@ -90,6 +90,7 @@ function toListItem(item: RawSubscriptionItem, sub: RawSubscription): RenewalLis
   const isPending = status === "PENDING";
 
   return {
+    id: Number(item.id),
     subscriptionId: Number(sub.id),
     productName: product.name,
     nickname: sub.nickname || "",

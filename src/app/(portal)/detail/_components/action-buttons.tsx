@@ -1,9 +1,11 @@
 import Link from "next/link";
+import PauseSubscriptionButton from "@/components/shared/pause-subscription-button";
+import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
 
 interface ActionButtonsProps {
   itemId: number;
-  subscriptionId: number;
   showPauseButton: boolean;
+  pauseItems: PauseItem[];
 }
 
 const BUTTON_BASE =
@@ -11,8 +13,8 @@ const BUTTON_BASE =
 
 export default function ActionButtons({
   itemId,
-  subscriptionId,
   showPauseButton,
+  pauseItems,
 }: ActionButtonsProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-auto pt-3">
@@ -24,12 +26,10 @@ export default function ActionButtons({
       </Link>
 
       {showPauseButton && (
-        <Link
-          href={`/pause-subscription/${subscriptionId}`}
+        <PauseSubscriptionButton
+          items={pauseItems}
           className={`${BUTTON_BASE} border border-brand-primary rounded-pill text-brand-primary hover:bg-brand-surface`}
-        >
-          Pause Subscription
-        </Link>
+        />
       )}
     </div>
   );

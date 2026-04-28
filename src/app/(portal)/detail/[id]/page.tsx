@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getRenewalDetail } from "@/lib/actions/renewal-detail.actions";
 import Breadcrumb from "@/components/ui/breadcrumb";
+import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
 import RenewalCard from "../_components/renewal-card";
 import RenewalHeader from "../_components/renewal-header";
 
@@ -24,6 +25,11 @@ export default async function RenewalDetailPage({ params }: DetailPageProps) {
     ? `${subscription.technology} – ${subscription.nickname}`
     : subscription.technology;
 
+  const pauseItems: PauseItem[] = subscriptionItems.map((item) => ({
+    id: item.id,
+    productName: item.productName,
+  }));
+
   return (
     <div className="flex flex-col gap-4">
       <Breadcrumb page="renewal-detail" current={breadcrumbTitle} />
@@ -42,6 +48,7 @@ export default async function RenewalDetailPage({ params }: DetailPageProps) {
               item={item}
               isAdmin={isAdmin}
               availableLinkedProducts={availableLinkedProducts}
+              pauseItems={pauseItems}
             />
           ))}
         </div>

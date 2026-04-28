@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import AddP1Filter from "./add-p1-filter";
+import NicknameDialog from "./nickname-dialog";
 import RemoveButton from "./remove-button";
 import { removeSubscription } from "../actions";
 import type { RenewalSubscription } from "@/lib/types/subscription";
@@ -18,11 +20,16 @@ export default function RenewalHeader({
   showAddP1Filter,
   canRemoveSubscription,
 }: RenewalHeaderProps) {
+  const [nicknameOpen, setNicknameOpen] = useState(false);
+
   return (
     <header className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-4 min-w-0">
-        <EditableLabel text={`${subscription.technology} | Zone ${subscription.zone}`} />
-        <EditableLabel text={subscription.nickname || "Add nickname"} />
+        <EditableLabel text={`${subscription.technology} | Zone ${subscription.zone}`} onClick={() => {}} />
+        <EditableLabel
+          text={subscription.nickname || "Add nickname"}
+          onClick={() => setNicknameOpen(true)}
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -37,19 +44,25 @@ export default function RenewalHeader({
           />
         )}
       </div>
+
+      <NicknameDialog
+        open={nicknameOpen}
+        onClose={() => setNicknameOpen(false)}
+        subscriptionId={subscription.id}
+        currentNickname={subscription.nickname}
+      />
     </header>
   );
 }
 
-function EditableLabel({ text }: { text: string }) {
+interface EditableLabelProps {
+  text: string;
+  onClick: () => void;
+}
+
+function EditableLabel({ text, onClick }: EditableLabelProps) {
   return (
-    <button
-      type="button"
-      onClick={() => {
-        // TODO: open rename popup
-      }}
-      className="flex items-center gap-2 cursor-pointer"
-    >
+    <button type="button" onClick={onClick} className="flex items-center gap-2 cursor-pointer">
       <span className={TITLE_CLASS}>{text}</span>
       <img src="/assets/icons/figma/edit-pencil.svg" alt="Edit" className="w-5 h-5" />
     </button>

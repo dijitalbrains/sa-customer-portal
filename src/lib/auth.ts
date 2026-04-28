@@ -56,3 +56,18 @@ export async function requireUserId(): Promise<number> {
   const session = await requireAuth();
   return Number(session.user.id);
 }
+
+export interface AuthSession {
+  userId: number;
+  adminId: number;
+  actorId: number;
+  isAdmin: boolean;
+}
+
+export async function requireSession(): Promise<AuthSession> {
+  const session = await requireAuth();
+  const userId = Number(session.user.id);
+  const adminId = session.adminId ?? 0;
+  const isAdmin = adminId > 0;
+  return { userId, adminId, isAdmin, actorId: isAdmin ? adminId : userId };
+}

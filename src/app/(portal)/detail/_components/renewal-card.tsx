@@ -6,17 +6,20 @@ import type {
   RenewalItem,
   LinkedProductOption,
 } from "@/lib/types/subscription";
+import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
 
 interface RenewalCardProps {
   item: RenewalItem;
   isAdmin: boolean;
   availableLinkedProducts: LinkedProductOption[];
+  pauseItems: PauseItem[];
 }
 
 export default function RenewalCard({
   item,
   isAdmin,
   availableLinkedProducts,
+  pauseItems,
 }: RenewalCardProps) {
   const showPauseButton = item.subscription.isLoyaltyEnabled && !item.isPending;
 
@@ -27,8 +30,8 @@ export default function RenewalCard({
         <RenewalSettings item={item} />
         <ActionButtons
           itemId={item.id}
-          subscriptionId={item.subscription.id}
           showPauseButton={showPauseButton}
+          pauseItems={pauseItems}
         />
       </div>
 
