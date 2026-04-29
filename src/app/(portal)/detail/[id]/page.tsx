@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getRenewalDetail } from "@/lib/actions/renewal-detail.actions";
 import Breadcrumb from "@/components/ui/breadcrumb";
-import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
+import type { PauseItem } from "@/components/shared/pause-subscription/dialog";
 import RenewalCard from "../_components/renewal-card";
 import RenewalHeader from "../_components/renewal-header";
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import PauseSubscriptionDialog, {
   type PauseItem,
-} from "@/components/shared/pause-subscription-dialog";
+} from "@/components/shared/pause-subscription/dialog";
 
 interface PauseSubscriptionButtonProps {
   items: PauseItem[];

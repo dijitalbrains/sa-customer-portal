@@ -6,7 +6,7 @@ import type {
   RenewalItem,
   LinkedProductOption,
 } from "@/lib/types/subscription";
-import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
+import type { PauseItem } from "@/components/shared/pause-subscription/dialog";
 
 interface RenewalCardProps {
   item: RenewalItem;

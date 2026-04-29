@@ -1,4 +1,4 @@
-import PauseSubscriptionButton from "@/components/shared/pause-subscription-button";
+import PauseSubscriptionButton from "@/components/shared/pause-subscription/button";
 import RenewalCard from "./renewal-card";
 import type { RenewalListGroup } from "@/lib/types/subscription";
 

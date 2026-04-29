@@ -1,6 +1,6 @@
 import Link from "next/link";
-import PauseSubscriptionButton from "@/components/shared/pause-subscription-button";
-import type { PauseItem } from "@/components/shared/pause-subscription-dialog";
+import PauseSubscriptionButton from "@/components/shared/pause-subscription/button";
+import type { PauseItem } from "@/components/shared/pause-subscription/dialog";
 
 interface ActionButtonsProps {
   itemId: number;
