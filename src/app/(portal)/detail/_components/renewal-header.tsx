@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import AddP1Filter from "./add-p1-filter";
+import EditZoneDialog from "./edit-zone/dialog";
 import NicknameDialog from "./nickname-dialog";
 import RemoveButton from "./remove-button";
 import { removeSubscription } from "../actions";
@@ -21,11 +22,15 @@ export default function RenewalHeader({
   canRemoveSubscription,
 }: RenewalHeaderProps) {
   const [nicknameOpen, setNicknameOpen] = useState(false);
+  const [zoneOpen, setZoneOpen] = useState(false);
 
   return (
     <header className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex flex-wrap items-center gap-4 min-w-0">
-        <EditableLabel text={`${subscription.technology} | Zone ${subscription.zone}`} onClick={() => {}} />
+        <EditableLabel
+          text={`${subscription.technology} | Zone ${subscription.zone}`}
+          onClick={() => setZoneOpen(true)}
+        />
         <EditableLabel
           text={subscription.nickname || "Add nickname"}
           onClick={() => setNicknameOpen(true)}
@@ -51,6 +56,13 @@ export default function RenewalHeader({
         subscriptionId={subscription.id}
         currentNickname={subscription.nickname}
       />
+      {zoneOpen && (
+        <EditZoneDialog
+          open={zoneOpen}
+          onClose={() => setZoneOpen(false)}
+          subscriptionId={subscription.id}
+        />
+      )}
     </header>
   );
 }

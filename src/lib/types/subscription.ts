@@ -55,16 +55,30 @@ export interface RenewalSubscription {
   isLoyaltyEnabled: boolean;
   isShowerFilter: boolean;
   canAddP1Filter: boolean;
+  productKey: string;
+  countryId: number | null;
+  stateId: number | null;
+  city: string;
+  zip: string;
+  householdSize: number;
+  isWellWater: boolean | null;
+  hasFiltrationSystem: boolean | null;
+  hasMicronSystem: boolean | null;
 }
 
 export interface RenewalItem {
   id: number;
   productName: string;
+  productKey: string;
   productImage: string;
   productType: string;
   status: "active" | "expired" | "pending";
   isPending: boolean;
   isP1Filter: boolean;
+  validityType: "MONTHS" | "WEEKS";
+  validityValue: number;
+  endsAt: string | null;
+  upcomingReminder: string | null;
   nextReminderDate: string;
   shipTo: string;
   payment: PaymentMethod;

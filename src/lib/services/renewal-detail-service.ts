@@ -99,6 +99,15 @@ function toSubscription(sub: RawSubscription): RenewalSubscription {
     isLoyaltyEnabled: sub.is_loyalty_enabled,
     isShowerFilter: baseProductKey === SHOWER_FILTER_KEY,
     canAddP1Filter: !hasP1Filter && !P1_INELIGIBLE_PRODUCT_KEYS.has(baseProductKey),
+    productKey: baseProductKey,
+    countryId: sub.country_id ?? null,
+    stateId: sub.state_id ?? null,
+    city: sub.city ?? "",
+    zip: sub.zip ?? "",
+    householdSize: sub.household_size,
+    isWellWater: sub.is_well_water,
+    hasFiltrationSystem: sub.has_filtration_system,
+    hasMicronSystem: sub.has_micron_system,
   };
 }
 
@@ -136,11 +145,16 @@ async function toRenewalItem(
   return {
     id: Number(item.id),
     productName: product.name,
+    productKey: product.key,
     productImage: buildImageUrl(product.image),
     productType: product.type ?? "",
     status: isExpired ? "expired" : isPending ? "pending" : "active",
     isPending,
     isP1Filter: product.key === P1_FILTER_KEY,
+    validityType: item.validity_type,
+    validityValue: item.validity_value,
+    endsAt: item.ends_at ? item.ends_at.toISOString() : null,
+    upcomingReminder: item.upcoming_reminder ? item.upcoming_reminder.toISOString() : null,
     nextReminderDate: isPending
       ? "Pending Install"
       : formatShortDate(subscription.isLoyaltyEnabled ? item.ends_at : item.upcoming_reminder),

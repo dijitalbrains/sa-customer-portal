@@ -29,7 +29,7 @@ export default function RenewalCard({
         <ItemDetail item={item} isAdmin={isAdmin} />
         <RenewalSettings item={item} />
         <ActionButtons
-          itemId={item.id}
+          item={item}
           showPauseButton={showPauseButton}
           pauseItems={pauseItems}
         />
