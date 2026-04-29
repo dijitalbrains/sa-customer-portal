@@ -10,9 +10,9 @@ import {
   type ZoneFormInput,
 } from "@/lib/actions/zone.actions";
 
-const DEBOUNCE_MS = 300;
+const PREVIEW_DEBOUNCE_MS = 300;
 
-export interface ZoneFormState {
+export interface ZoneFormFields {
   countryId: number | null;
   stateId: number | null;
   city: string;
@@ -29,7 +29,7 @@ export interface ZonePreview {
   linkedProduct: ProductRef | null;
 }
 
-export interface EditZoneView extends ZoneFormState {
+export interface EditZoneView extends ZoneFormFields {
   states: StateOption[];
   loadingStates: boolean;
   preview: ZonePreview;
@@ -39,7 +39,7 @@ export interface EditZoneView extends ZoneFormState {
 }
 
 export function useEditZone(subscription: SubscriptionSnapshot) {
-  const [form, setForm] = useState<ZoneFormState>(() => initialState(subscription));
+  const [fields, setFields] = useState<ZoneFormFields>(() => initialFields(subscription));
   const [states, setStates] = useState<StateOption[]>([]);
   const [loadingStates, startStatesLoad] = useTransition();
   const [preview, setPreview] = useState<ZonePreview>({
@@ -50,65 +50,69 @@ export function useEditZone(subscription: SubscriptionSnapshot) {
   const [loadingPreview, startPreviewLoad] = useTransition();
 
   useEffect(() => {
-    if (form.countryId === null) {
+    if (fields.countryId === null) {
       setStates([]);
       return;
     }
     startStatesLoad(async () => {
-      const next = await getStatesForCountry(form.countryId as number);
+      const next = await getStatesForCountry(fields.countryId as number);
       setStates(next);
     });
-  }, [form.countryId]);
+  }, [fields.countryId]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    if (!isComplete(form)) return;
+    if (!isComplete(fields)) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       startPreviewLoad(async () => {
         try {
           const result = await getZoneChanges({
             subscriptionId: subscription.id,
-            ...toServerInput(form),
+            ...buildZoneInput(fields),
           });
           setPreview(result);
         } catch (err) {
           console.error("[edit-zone] zone preview failed", err);
         }
       });
-    }, DEBOUNCE_MS);
+    }, PREVIEW_DEBOUNCE_MS);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [form, subscription.id]);
+  }, [fields, subscription.id]);
 
   const view: EditZoneView = {
-    ...form,
+    ...fields,
     states,
     loadingStates,
     preview,
     loadingPreview,
     invalidZip: preview.zone === -1,
-    isComplete: isComplete(form),
+    isComplete: isComplete(fields),
   };
 
   return {
     view,
     setCountry: (id: number) =>
-      setForm((p) => ({ ...p, countryId: id, stateId: null, city: "", zip: "" })),
-    setState: (id: number) => setForm((p) => ({ ...p, stateId: id })),
-    setCity: (city: string) => setForm((p) => ({ ...p, city })),
-    setZip: (zip: string) => setForm((p) => ({ ...p, zip })),
-    setHouseholdSize: (n: number) => setForm((p) => ({ ...p, householdSize: n })),
+      setFields((p) => ({ ...p, countryId: id, stateId: null, city: "", zip: "" })),
+    setState: (id: number) => setFields((p) => ({ ...p, stateId: id })),
+    setCity: (city: string) => setFields((p) => ({ ...p, city })),
+    setZip: (zip: string) => setFields((p) => ({ ...p, zip })),
+    setHouseholdSize: (n: number) => setFields((p) => ({ ...p, householdSize: n })),
     setIsWellWater: (v: boolean) =>
-      setForm((p) => ({ ...p, isWellWater: v, hasFiltrationSystem: v ? p.hasFiltrationSystem : null })),
-    setHasFiltrationSystem: (v: boolean) => setForm((p) => ({ ...p, hasFiltrationSystem: v })),
-    setHasMicronSystem: (v: boolean) => setForm((p) => ({ ...p, hasMicronSystem: v })),
-    toServerInput: () => toServerInput(form),
+      setFields((p) => ({
+        ...p,
+        isWellWater: v,
+        hasFiltrationSystem: v ? p.hasFiltrationSystem : null,
+      })),
+    setHasFiltrationSystem: (v: boolean) => setFields((p) => ({ ...p, hasFiltrationSystem: v })),
+    setHasMicronSystem: (v: boolean) => setFields((p) => ({ ...p, hasMicronSystem: v })),
+    buildZoneInput: () => buildZoneInput(fields),
   };
 }
 
-function initialState(subscription: SubscriptionSnapshot): ZoneFormState {
+function initialFields(subscription: SubscriptionSnapshot): ZoneFormFields {
   return {
     countryId: subscription.countryId,
     stateId: subscription.stateId,
@@ -121,25 +125,25 @@ function initialState(subscription: SubscriptionSnapshot): ZoneFormState {
   };
 }
 
-function isComplete(form: ZoneFormState): boolean {
-  if (form.countryId === null) return false;
-  if (!form.city.trim() || !form.zip.trim()) return false;
-  if (form.isWellWater === null || form.hasMicronSystem === null) return false;
-  if (form.isWellWater && form.hasFiltrationSystem === null) return false;
+function isComplete(fields: ZoneFormFields): boolean {
+  if (fields.countryId === null) return false;
+  if (!fields.city.trim() || !fields.zip.trim()) return false;
+  if (fields.isWellWater === null || fields.hasMicronSystem === null) return false;
+  if (fields.isWellWater && fields.hasFiltrationSystem === null) return false;
   return true;
 }
 
-type ServerFields = Omit<ZoneFormInput, "subscriptionId">;
+type ZoneInputFields = Omit<ZoneFormInput, "subscriptionId">;
 
-function toServerInput(form: ZoneFormState): ServerFields {
+function buildZoneInput(fields: ZoneFormFields): ZoneInputFields {
   return {
-    countryId: form.countryId as number,
-    stateId: form.stateId,
-    city: form.city.trim(),
-    zip: form.zip.trim(),
-    householdSize: form.householdSize,
-    isWellWater: form.isWellWater === true,
-    hasFiltrationSystem: form.hasFiltrationSystem === true,
-    hasMicronSystem: form.hasMicronSystem === true,
+    countryId: fields.countryId as number,
+    stateId: fields.stateId,
+    city: fields.city.trim(),
+    zip: fields.zip.trim(),
+    householdSize: fields.householdSize,
+    isWellWater: fields.isWellWater === true,
+    hasFiltrationSystem: fields.hasFiltrationSystem === true,
+    hasMicronSystem: fields.hasMicronSystem === true,
   };
 }

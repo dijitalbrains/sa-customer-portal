@@ -11,7 +11,6 @@ export interface ZoneInput {
   hasMicronSystem: boolean;
 }
 
-/** Mirrors legacy ZoneService::getZone — returns 0–5 for valid zones, -1 for unsupported zip. */
 export async function getZone(input: ZoneInput): Promise<number> {
   if (input.hasMicronSystem) return 0;
   if (input.isWellWater) return input.hasFiltrationSystem ? 3 : 5;

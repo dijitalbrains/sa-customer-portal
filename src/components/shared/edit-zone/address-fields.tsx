@@ -16,10 +16,6 @@ interface AddressFieldsProps {
   onZip: (zip: string) => void;
 }
 
-const FIELD_CLASS =
-  "w-full h-10 px-3 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary";
-const SELECT_CLASS = `${FIELD_CLASS} appearance-none cursor-pointer pr-8`;
-
 export default function AddressFields({
   countries,
   states,
@@ -38,14 +34,14 @@ export default function AddressFields({
       <select
         value={countryId ?? ""}
         onChange={(e) => onCountry(Number(e.target.value))}
-        className={SELECT_CLASS}
+        className="w-full h-10 px-3 pr-8 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary"
       >
         <option value="" disabled>
           Country
         </option>
-        {countries.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
+        {countries.map((country) => (
+          <option key={country.id} value={country.id}>
+            {country.name}
           </option>
         ))}
       </select>
@@ -54,14 +50,14 @@ export default function AddressFields({
         value={stateId ?? ""}
         onChange={(e) => onState(Number(e.target.value))}
         disabled={loadingStates || states.length === 0}
-        className={`${SELECT_CLASS} disabled:opacity-60`}
+        className="w-full h-10 px-3 pr-8 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary disabled:opacity-60"
       >
         <option value="" disabled>
           {loadingStates ? "Loading…" : "State / Province"}
         </option>
-        {states.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name}
+        {states.map((state) => (
+          <option key={state.id} value={state.id}>
+            {state.name}
           </option>
         ))}
       </select>
@@ -71,7 +67,7 @@ export default function AddressFields({
         value={city}
         onChange={(e) => onCity(e.target.value)}
         placeholder="City"
-        className={FIELD_CLASS}
+        className="w-full h-10 px-3 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
       />
 
       <input
@@ -79,7 +75,7 @@ export default function AddressFields({
         value={zip}
         onChange={(e) => onZip(e.target.value)}
         placeholder="Enter Zip / Postal code"
-        className={FIELD_CLASS}
+        className="w-full h-10 px-3 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
       />
     </div>
   );

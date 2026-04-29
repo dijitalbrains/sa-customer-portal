@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import AddP1Filter from "./add-p1-filter";
-import EditZoneDialog from "./edit-zone/dialog";
+import EditZone from "@/components/shared/edit-zone/edit-zone";
 import NicknameDialog from "./nickname-dialog";
 import RemoveButton from "./remove-button";
 import { removeSubscription } from "../actions";
@@ -57,7 +57,7 @@ export default function RenewalHeader({
         currentNickname={subscription.nickname}
       />
       {zoneOpen && (
-        <EditZoneDialog
+        <EditZone
           open={zoneOpen}
           onClose={() => setZoneOpen(false)}
           subscriptionId={subscription.id}
