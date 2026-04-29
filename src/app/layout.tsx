@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Archivo } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/providers/toast-provider";
+import ConfirmationProvider from "@/components/providers/confirmation-provider";
 
 const outfit = Outfit({
   variable: "--font-sans",
@@ -30,7 +31,7 @@ export default function RootLayout({
       className={`${outfit.variable} ${archivo.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="h-full font-sans text-text-primary bg-surface-base">
-        {children}
+        <ConfirmationProvider>{children}</ConfirmationProvider>
         <ToastProvider />
       </body>
     </html>

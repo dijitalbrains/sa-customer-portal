@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { toast } from "react-toastify";
+import { useConfirmation } from "@/components/providers/confirmation-provider";
 
 type Variant = "link" | "ghost" | "pill";
 
@@ -28,68 +29,28 @@ export default function RemoveButton({
   action,
   variant = "link",
 }: RemoveButtonProps) {
-  const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const { confirm } = useConfirmation();
 
-  const confirm = () => {
-    startTransition(async () => {
-      await action();
-      setOpen(false);
+  const handleClick = () => {
+    confirm({
+      title: confirmTitle,
+      description: confirmMessage,
+      confirmText: label,
+      variant: "danger",
+      onConfirm: async () => {
+        try {
+          await action();
+          toast.success(`${label} successful`);
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Something went wrong");
+        }
+      },
     });
   };
 
   return (
-    <>
-      <button type="button" onClick={() => setOpen(true)} className={TRIGGER_CLASS[variant]}>
-        {label}
-      </button>
-
-      {open && (
-        <ConfirmDialog
-          title={confirmTitle}
-          message={confirmMessage}
-          pending={pending}
-          onCancel={() => setOpen(false)}
-          onConfirm={confirm}
-        />
-      )}
-    </>
-  );
-}
-
-interface ConfirmDialogProps {
-  title: string;
-  message: string;
-  pending: boolean;
-  onCancel: () => void;
-  onConfirm: () => void;
-}
-
-function ConfirmDialog({ title, message, pending, onCancel, onConfirm }: ConfirmDialogProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-heading/40 px-4">
-      <div className="bg-surface-base rounded-2xl shadow-card max-w-md w-full p-6 flex flex-col gap-4">
-        <h3 className="text-lg font-bold text-text-heading">{title}</h3>
-        <p className="text-[13px] text-text-muted">{message}</p>
-        <div className="flex items-center gap-3 justify-end pt-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={pending}
-            className="px-5 py-2 rounded-pill text-[13px] font-semibold text-text-muted hover:bg-surface-overlay cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={pending}
-            className="px-5 py-2 rounded-pill text-[13px] font-semibold text-white bg-status-error-text hover:opacity-90 disabled:opacity-60 cursor-pointer"
-          >
-            {pending ? "Removing..." : "Confirm"}
-          </button>
-        </div>
-      </div>
-    </div>
+    <button type="button" onClick={handleClick} className={TRIGGER_CLASS[variant]}>
+      {label}
+    </button>
   );
 }
