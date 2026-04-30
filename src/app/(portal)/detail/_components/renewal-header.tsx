@@ -76,7 +76,7 @@ function EditableLabel({ text, onClick }: EditableLabelProps) {
   return (
     <button type="button" onClick={onClick} className="flex items-center gap-2 cursor-pointer">
       <span className={TITLE_CLASS}>{text}</span>
-      <img src="/assets/icons/figma/edit-pencil.svg" alt="Edit" className="w-5 h-5" />
+      <img src="/assets/icons/edit-pencil.svg" alt="Edit" className="w-5 h-5" />
     </button>
   );
 }

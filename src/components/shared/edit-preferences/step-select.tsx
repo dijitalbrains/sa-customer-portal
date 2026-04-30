@@ -24,7 +24,7 @@ export default function StepSelect({ value, options, onChange }: StepSelectProps
         ))}
       </select>
       <img
-        src="/assets/icons/figma/chevron-up-down.svg"
+        src="/assets/icons/chevron-up-down.svg"
         alt=""
         className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none"
       />

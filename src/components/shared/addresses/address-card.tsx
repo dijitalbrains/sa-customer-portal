@@ -61,7 +61,7 @@ export default function AddressCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-1.5 min-w-0">
             <img
-              src="/assets/icons/figma/pin.svg"
+              src="/assets/icons/pin.svg"
               alt=""
               className="w-3.5 h-3.5 mt-0.5 shrink-0"
             />

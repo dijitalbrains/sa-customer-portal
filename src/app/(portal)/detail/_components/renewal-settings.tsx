@@ -6,7 +6,7 @@ const LABEL_CLASS = "font-semibold text-[10px] uppercase text-black leading-none
 const VALUE_CLASS = "font-normal text-xs text-black leading-tight";
 const COLUMN_CLASS = "flex-1 basis-[180px] min-w-0";
 const CHEVRON = (
-  <img src="/assets/icons/figma/chevron-tiny.svg" alt="" className="w-[5px] h-[9px] -scale-y-100" />
+  <img src="/assets/icons/chevron-tiny.svg" alt="" className="w-[5px] h-[9px] -scale-y-100" />
 );
 
 export default function RenewalSettings({ item }: { item: RenewalItem }) {

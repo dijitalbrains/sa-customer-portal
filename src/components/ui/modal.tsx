@@ -24,7 +24,7 @@ export default function Modal({ open, onClose, children, width = "max-w-[540px]"
             aria-label="Close"
             className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:bg-surface-overlay cursor-pointer"
           >
-            <img src="/assets/icons/figma/close.svg" alt="" className="w-4 h-4" />
+            <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
           </button>
           {children}
         </DialogPanel>

@@ -56,7 +56,7 @@ export function SelectRow({ label, value, options, onChange }: SelectRowProps) {
           ))}
         </select>
         <img
-          src="/assets/icons/figma/chevron-tiny-down.svg"
+          src="/assets/icons/chevron-tiny-down.svg"
           alt=""
           className="w-[5px] h-[9px] rotate-90 shrink-0"
         />
@@ -109,7 +109,7 @@ function StepButton({
       aria-label={label}
       className="w-5 h-5 cursor-pointer shrink-0"
     >
-      <img src={`/assets/icons/figma/${icon}.svg`} alt="" className="w-full h-full" />
+      <img src={`/assets/icons/${icon}.svg`} alt="" className="w-full h-full" />
     </button>
   );
 }

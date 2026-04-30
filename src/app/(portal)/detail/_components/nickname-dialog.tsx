@@ -36,7 +36,7 @@ export default function NicknameDialog({
   return (
     <Modal open={open} onClose={onClose}>
       <div className="px-10 pt-9 pb-5 flex flex-col items-center gap-2">
-        <img src="/assets/icons/figma/edit-pencil.svg" alt="" className="w-12 h-12" />
+        <img src="/assets/icons/edit-pencil.svg" alt="" className="w-12 h-12" />
         <h2 className="text-2xl font-bold text-text-heading mt-2">Edit Nickname</h2>
         <p className="text-[13px] text-text-muted text-center max-w-[300px]">
           Give your subscription a friendly name to easily identify it.

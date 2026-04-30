@@ -157,7 +157,7 @@ function Header({ onClose }: { onClose: () => void }) {
     <div className="border-b border-border-subtle/50">
       <div className="flex items-center justify-between gap-3 px-7 py-3">
         <div className="flex items-center gap-3">
-          <img src="/assets/icons/figma/setup-icon.svg" alt="" />
+          <img src="/assets/icons/setup-icon.svg" alt="" />
           <h3 className="font-bold text-[17px] text-text-heading leading-tight">
             Customize your setup
           </h3>
@@ -168,7 +168,7 @@ function Header({ onClose }: { onClose: () => void }) {
           aria-label="Close"
           className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-overlay cursor-pointer"
         >
-          <img src="/assets/icons/figma/close.svg" alt="" className="w-4 h-4" />
+          <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
         </button>
       </div>
     </div>

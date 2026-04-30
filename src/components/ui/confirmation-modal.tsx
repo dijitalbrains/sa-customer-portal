@@ -28,7 +28,7 @@ const CONFIRM_CLASS: Record<ConfirmationVariant, string> = {
 };
 
 const VARIANT_ICON: Record<ConfirmationVariant, string | null> = {
-  danger: "/assets/icons/figma/delete-icon.svg",
+  danger: "/assets/icons/delete-icon.svg",
   primary: null,
 };
 

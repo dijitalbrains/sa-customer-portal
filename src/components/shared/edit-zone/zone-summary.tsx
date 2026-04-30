@@ -166,7 +166,7 @@ function P1FilterLine({ product, validityMonths }: P1FilterLineProps) {
     <div className="flex items-center justify-between gap-3 bg-white rounded-xl px-3 py-2.5">
       <div className="flex items-center gap-2.5 min-w-0">
         <span className="w-9 h-9 rounded-lg bg-[#eef6fc] flex items-center justify-center shrink-0">
-          <img src="/assets/icons/figma/filter-icon.svg" alt="" className="w-5 h-5" />
+          <img src="/assets/icons/filter-icon.svg" alt="" className="w-5 h-5" />
         </span>
         <div className="flex flex-col min-w-0">
           <span className="text-[13px] font-bold text-text-heading">{product.name}</span>
@@ -182,7 +182,7 @@ function P1FilterLine({ product, validityMonths }: P1FilterLineProps) {
 
 function RenewalIconWithHint({ hint }: { hint: string | null }) {
   const [isOpen, setIsOpen] = useState(false);
-  const iconSrc = "/assets/icons/figma/renewal-icon.svg";
+  const iconSrc = "/assets/icons/renewal-icon.svg";
 
   if (!hint) {
     return (

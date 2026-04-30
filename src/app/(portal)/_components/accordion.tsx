@@ -38,7 +38,7 @@ export default function Accordion({
           <img
             src="/assets/icons/chevron-down.svg"
             alt=""
-            className={`w-5 h-5 transition-transform duration-200 shrink-0 ${
+            className={`w-3 h-3 transition-transform duration-200 shrink-0 ${
               open ? "rotate-180" : ""
             }`}
           />

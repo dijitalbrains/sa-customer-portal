@@ -72,7 +72,7 @@ export default function PauseSubscriptionDialog({
   return (
     <Modal open={open} onClose={onClose}>
       <div className="px-10 pt-9 pb-5 flex flex-col items-center gap-2">
-        <img src="/assets/icons/figma/pause-icon.svg" alt="" className="w-20 h-20" />
+        <img src="/assets/icons/pause-icon.svg" alt="" className="w-20 h-20" />
         <h2 className="text-2xl font-bold text-text-heading mt-2">Are you moving?</h2>
         <p className="text-[13px] text-text-muted text-center max-w-[300px]">
           Pause your filter renewals while you get settled into your new place.
@@ -116,7 +116,7 @@ export default function PauseSubscriptionDialog({
             ))}
           </select>
           <img
-            src="/assets/icons/figma/chevron-down.svg"
+            src="/assets/icons/chevron-down.svg"
             alt=""
             className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none"
           />

@@ -55,10 +55,10 @@ export default function StepReminder({
           prev2Label={null}
           next2Label={null}
           prevLabel={
-            <img src="/assets/icons/figma/chevron-left.svg" alt="" className="w-2.5 h-2.5" />
+            <img src="/assets/icons/chevron-left.svg" alt="" className="w-2.5 h-2.5" />
           }
           nextLabel={
-            <img src="/assets/icons/figma/chevron-right.svg" alt="" className="w-2.5 h-2.5" />
+            <img src="/assets/icons/chevron-right.svg" alt="" className="w-2.5 h-2.5" />
           }
         />
       </div>
@@ -82,7 +82,7 @@ function ArrowButton({ direction, onClick }: { direction: "left" | "right"; onCl
       aria-label={direction === "left" ? "Previous day" : "Next day"}
       className="w-6 h-6 rounded-full bg-surface-overlay flex items-center justify-center hover:bg-brand-credits cursor-pointer"
     >
-      <img src={`/assets/icons/figma/chevron-${direction}.svg`} alt="" className="w-2.5 h-2.5" />
+      <img src={`/assets/icons/chevron-${direction}.svg`} alt="" className="w-2.5 h-2.5" />
     </button>
   );
 }
