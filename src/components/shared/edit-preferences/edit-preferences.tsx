@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import PricingSummary, { type PricingSummaryProps } from "@/components/shared/pricing-summary";
-import { useEditPreferences } from "../../_hooks/use-edit-preferences";
+import { useEditPreferences } from "@/app/(portal)/detail/_hooks/use-edit-preferences";
 import { updatePreferences } from "@/lib/actions/preferences.actions";
 import type { RenewalItem } from "@/lib/types/subscription";
 import StepInventory from "./step-inventory";
@@ -13,20 +13,13 @@ import StepReminder from "./step-reminder";
 import StepQuantity from "./step-quantity";
 import StepReview from "./step-review";
 
-interface EditPreferencesDialogProps {
+interface EditPreferencesProps {
   open: boolean;
   onClose: () => void;
   item: RenewalItem;
 }
 
-const PANEL_SHADOW =
-  "shadow-[0px_0px_0px_1px_rgba(55,146,222,0.08),0px_32px_80px_-8px_rgba(8,20,40,0.5)]";
-
-export default function EditPreferencesDialog({
-  open,
-  onClose,
-  item,
-}: EditPreferencesDialogProps) {
+export default function EditPreferences({ open, onClose, item }: EditPreferencesProps) {
   const pref = useEditPreferences(item);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +56,11 @@ export default function EditPreferencesDialog({
       <DialogBackdrop className="fixed inset-0 bg-text-heading/50 backdrop-blur-[2px]" />
       <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
         <DialogPanel
-          className={`relative bg-white rounded-3xl ${PANEL_SHADOW} w-full ${
+          className={`relative bg-white rounded-3xl shadow-[0px_0px_0px_1px_rgba(55,146,222,0.08),0px_32px_80px_-8px_rgba(8,20,40,0.5)] w-full ${
             isLoyalty ? "max-w-[1020px]" : "max-w-[540px]"
           }`}
         >
-          <Header item={item} onClose={onClose} />
+          <Header onClose={onClose} />
 
           <div
             className={`grid gap-6 px-7 py-6 ${
@@ -118,7 +111,7 @@ export default function EditPreferencesDialog({
                   quantity={pref.view.quantity}
                   showQuantity
                 />
-                <PricingSummary {...summaryProps(item, pref.view)} />
+                <PricingSummary {...buildSummaryProps(item, pref.view)} />
               </div>
             )}
           </div>
@@ -141,28 +134,15 @@ export default function EditPreferencesDialog({
   );
 }
 
-function Header({ item, onClose }: { item: RenewalItem; onClose: () => void }) {
-  const subtitle = [
-    item.productName,
-    `${item.subscription.technology} | Zone ${item.subscription.zone}`,
-    item.linkedProductName,
-  ]
-    .filter(Boolean)
-    .join("  ·  ");
-
+function Header({ onClose }: { onClose: () => void }) {
   return (
     <div className="border-b border-border-subtle/50">
-      <div className="flex items-center justify-between gap-3 px-7 py-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-full bg-brand-credits flex items-center justify-center">
-            <span className="w-2.5 h-2.5 rounded-full bg-brand-gradient" />
-          </div>
-          <div>
-            <h3 className="font-bold text-[17px] text-text-heading leading-tight">
-              Edit Preferences
-            </h3>
-            <p className="text-[11px] text-text-muted mt-0.5">{subtitle}</p>
-          </div>
+      <div className="flex items-center justify-between gap-3 px-7 py-3">
+        <div className="flex items-center gap-3">
+            <img src="/assets/icons/figma/setup-icon.svg" alt="" />
+          <h3 className="font-bold text-[17px] text-text-heading leading-tight">
+            Edit Preferences
+          </h3>
         </div>
         <button
           type="button"
@@ -177,7 +157,7 @@ function Header({ item, onClose }: { item: RenewalItem; onClose: () => void }) {
   );
 }
 
-function summaryProps(
+function buildSummaryProps(
   item: RenewalItem,
   view: ReturnType<typeof useEditPreferences>["view"],
 ): PricingSummaryProps {

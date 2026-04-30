@@ -33,50 +33,54 @@ export default function StepQuantity({ productKey, value, onChange }: StepQuanti
       {isMeFilter ? (
         <StepSelect value={value} options={ME_FILTER_OPTIONS} onChange={onChange} />
       ) : (
-        <PackList value={value} onChange={onChange} />
+        <PackGrid value={value} onChange={onChange} />
       )}
     </StepSection>
   );
 }
 
-interface PackListProps {
+interface PackGridProps {
   value: number;
   onChange: (value: number) => void;
 }
 
-function PackList({ value, onChange }: PackListProps) {
+function PackGrid({ value, onChange }: PackGridProps) {
   return (
-    <div className="rounded-[10px] border border-border-subtle bg-white shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] overflow-hidden">
+    <div className="grid grid-cols-2 rounded-[10px] border border-border-subtle bg-white shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] overflow-hidden">
       {PACK_OPTIONS.map((opt, i) => (
-        <RadioRow
+        <PackCell
           key={opt.value}
           label={opt.label}
           checked={value === opt.value}
           onClick={() => onChange(opt.value)}
-          isFirst={i === 0}
+          showRightBorder={i % 2 === 0}
+          showTopBorder={i >= 2}
         />
       ))}
     </div>
   );
 }
 
-interface RadioRowProps {
+interface PackCellProps {
   label: string;
   checked: boolean;
-  isFirst: boolean;
+  showRightBorder: boolean;
+  showTopBorder: boolean;
   onClick: () => void;
 }
 
-function RadioRow({ label, checked, isFirst, onClick }: RadioRowProps) {
+function PackCell({ label, checked, showRightBorder, showTopBorder, onClick }: PackCellProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full h-9 px-3 flex items-center gap-3 cursor-pointer ${
+      className={`h-9 px-3 flex items-center gap-3 cursor-pointer ${
         checked ? "bg-surface-overlay" : "bg-white"
-      } ${!isFirst ? "border-t border-border-subtle/40" : ""}`}
+      } ${showRightBorder ? "border-r border-border-subtle/40" : ""} ${
+        showTopBorder ? "border-t border-border-subtle/40" : ""
+      }`}
     >
-      <RadioDot checked={checked} />
+      <PackRadio checked={checked} />
       <span
         className={`text-xs ${
           checked ? "font-semibold text-text-primary" : "font-normal text-text-muted"
@@ -88,7 +92,7 @@ function RadioRow({ label, checked, isFirst, onClick }: RadioRowProps) {
   );
 }
 
-function RadioDot({ checked }: { checked: boolean }) {
+function PackRadio({ checked }: { checked: boolean }) {
   return (
     <span
       className={`w-4 h-4 rounded-lg flex items-center justify-center ${

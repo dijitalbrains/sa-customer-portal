@@ -42,7 +42,7 @@ export default function StepReminder({
         </p>
       </div>
 
-      <div className="mt-2 rounded-[10px] border border-border-subtle bg-white shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] overflow-hidden edit-prefs-calendar">
+      <div className="mt-2 w-full rounded-[10px] border border-border-subtle bg-white shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] overflow-hidden edit-prefs-calendar">
         <Calendar
           value={value}
           onChange={(next: unknown) => next instanceof Date && onChange(next)}

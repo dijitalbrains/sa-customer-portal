@@ -156,7 +156,6 @@ export async function getStatesForCountry(countryId: number): Promise<StateOptio
   return rows.map((r) => ({ id: r.id, name: r.name }));
 }
 
-/** Port of legacy RenewalsController::getZoneChanges */
 export async function getZoneChanges(input: ZoneFormInput): Promise<ZoneChangesResult> {
   const zone = await getZone({
     countryId: input.countryId,
@@ -195,7 +194,6 @@ export async function getZoneChanges(input: ZoneFormInput): Promise<ZoneChangesR
   return { zone, p1ValidityMonths, linkedProduct };
 }
 
-/** Port of legacy RenewalsController::updateZone */
 export async function updateZone(input: ZoneFormInput & { zone: number }) {
   const { userId, actorId } = await requireSession();
 

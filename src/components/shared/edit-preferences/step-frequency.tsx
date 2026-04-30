@@ -1,9 +1,15 @@
 import StepSection from "./step-section";
 import StepSelect from "./step-select";
+import TabButtonGroup from "@/components/ui/tab-button-group";
 import type { ValidityType } from "@/lib/actions/preferences.actions";
 
 const MONTH_OPTIONS = buildOptions(24, "month");
 const WEEK_OPTIONS = buildOptions(80, "week");
+
+const VALIDITY_TYPE_OPTIONS: { label: string; value: ValidityType }[] = [
+  { label: "Months", value: "MONTHS" },
+  { label: "Weeks", value: "WEEKS" },
+];
 
 interface StepFrequencyProps {
   productName: string;
@@ -28,39 +34,15 @@ export default function StepFrequency({
       title="Renewal frequency"
       description={`How often do you want to change your ${productName} filter?`}
     >
-      <div className="flex gap-2 mb-2.5">
-        <TypeButton active={validityType === "MONTHS"} onClick={() => onValidityType("MONTHS")}>
-          Months
-        </TypeButton>
-        <TypeButton active={validityType === "WEEKS"} onClick={() => onValidityType("WEEKS")}>
-          Weeks
-        </TypeButton>
+      <div className="mb-2.5">
+        <TabButtonGroup
+          options={VALIDITY_TYPE_OPTIONS}
+          value={validityType}
+          onChange={onValidityType}
+        />
       </div>
       <StepSelect value={validityValue} options={options} onChange={onValidityValue} />
     </StepSection>
-  );
-}
-
-function TypeButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  const className = active
-    ? "bg-brand-gradient text-white font-semibold"
-    : "bg-white border border-border-subtle text-text-muted";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`h-8 w-22 rounded-lg text-xs cursor-pointer ${className}`}
-    >
-      {children}
-    </button>
   );
 }
 

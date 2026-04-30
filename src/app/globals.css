@@ -170,25 +170,25 @@ input.iti__search-input {
 }
 .edit-prefs-calendar .react-calendar__navigation {
   background: var(--color-surface-overlay);
-  height: 36px;
+  height: 44px;
   margin-bottom: 0;
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 12px;
 }
 .edit-prefs-calendar .react-calendar__navigation button {
-  min-width: 22px;
+  min-width: 28px;
   background: transparent;
   font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-heading);
 }
 .edit-prefs-calendar .react-calendar__navigation__arrow {
   background: var(--color-surface-overlay) !important;
-  width: 22px;
-  height: 22px;
-  border-radius: 11px;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -197,32 +197,51 @@ input.iti__search-input {
   background: white !important;
 }
 .edit-prefs-calendar .react-calendar__month-view__weekdays {
-  padding: 6px 8px 0;
+  padding: 10px 10px 4px;
 }
 .edit-prefs-calendar .react-calendar__month-view__weekdays__weekday {
   font-weight: 600;
-  font-size: 9px;
+  font-size: 11px;
   color: #788296;
   text-transform: none;
 }
 .edit-prefs-calendar .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
 }
+.edit-prefs-calendar .react-calendar__month-view__days {
+  padding: 4px 6px 8px;
+}
 .edit-prefs-calendar .react-calendar__tile {
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-primary);
-  height: 26px;
+  height: 36px;
   background: transparent;
-  border-radius: 11px;
+  border-radius: 14px;
+  position: relative;
+}
+.edit-prefs-calendar .react-calendar__tile abbr {
+  position: relative;
+  z-index: 1;
 }
 .edit-prefs-calendar .react-calendar__tile:hover {
   background: var(--color-surface-overlay);
 }
 .edit-prefs-calendar .react-calendar__tile--active {
-  background: linear-gradient(90deg, #3792DE 0%, #4EC7F2 100%) !important;
+  background: transparent !important;
   color: white;
   font-weight: 700;
+}
+.edit-prefs-calendar .react-calendar__tile--active::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #3792DE 0%, #4EC7F2 100%);
+  transform: translate(-50%, -50%);
 }
 .edit-prefs-calendar .react-calendar__tile--now {
   background: rgba(55, 146, 222, 0.1);

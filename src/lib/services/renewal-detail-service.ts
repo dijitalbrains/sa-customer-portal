@@ -4,6 +4,7 @@ import { formatAddress } from "@/lib/utils/address";
 import { getValidityStatus } from "@/lib/utils/subscription";
 import { getPaymentMethod } from "@/lib/utils/payment";
 import { calculateTax } from "@/lib/services/tax-service";
+import { calculateShipping } from "@/lib/services/shipping-service";
 import { getAvailableLinkedProducts } from "@/lib/services/linked-product-service";
 import { applyLoyaltyDiscount, type LoyaltyPrice } from "@/lib/services/pricing-service";
 import type {
@@ -123,7 +124,17 @@ async function toRenewalItem(
   const linkedPricing = linked ? priceWithLoyalty(linked, subscription.isLoyaltyEnabled) : null;
 
   const subTotal = calcSubTotal(item, productPricing, linkedPricing);
-  const shipping = product.renewal_shipping_price ?? product.shipping_price ?? 0;
+
+  const shippingResult = item.user_address_id
+    ? await calculateShipping({
+        productId: item.product_id,
+        linkedProductId: item.linked_product_id ?? null,
+        linkedProductQuantity: item.linked_product_quantity ?? 1,
+        quantity: item.quantity,
+        userAddressId: Number(item.user_address_id),
+      })
+    : { shippingPrice: 0, estimatedTax: 0 };
+  const shipping = shippingResult.shippingPrice;
 
   const taxBreakdown = await calculateTax({
     subtotal: subTotal,
