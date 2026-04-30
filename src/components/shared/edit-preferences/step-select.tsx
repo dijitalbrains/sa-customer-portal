@@ -15,7 +15,7 @@ export default function StepSelect({ value, options, onChange }: StepSelectProps
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="appearance-none w-full h-9 px-3 pr-8 rounded-lg bg-[#f9fafc] border border-border-subtle shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] text-xs text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
+        className="appearance-none w-full h-9 px-3 pr-8 rounded-[8px] bg-[#f9fafc] border border-border-subtle shadow-[0px_2px_6px_0px_rgba(0,48,82,0.05)] text-xs text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>

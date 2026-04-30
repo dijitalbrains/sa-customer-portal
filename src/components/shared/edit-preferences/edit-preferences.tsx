@@ -63,11 +63,11 @@ export default function EditPreferences({ open, onClose, item }: EditPreferences
           <Header onClose={onClose} />
 
           <div
-            className={`grid gap-6 px-7 py-6 ${
+            className={`grid gap-6 px-7 py-4 ${
               isLoyalty ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
             }`}
           >
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
               <StepInventory
                 productName={item.productName}
                 value={pref.view.unusedItems}
