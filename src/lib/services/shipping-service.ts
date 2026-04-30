@@ -1,6 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import { resolveTierPrices } from "@/lib/services/territory-resolver";
+import { processFallback } from "@/lib/services/territory-service";
 
 export interface ShippingResult {
   shippingPrice: number;
@@ -71,13 +71,14 @@ async function fetchAddress(userAddressId: number) {
 
 async function fetchTierShipping(input: ShippingInput, address: AddressRow): Promise<number> {
   if (!address.countries) return 0;
-  const rows = await resolveTierPrices(
+  const rows = await processFallback(
     {
       countryId: address.countries.id,
       stateId: address.state_id ?? null,
       city: address.city,
       zip: address.zip,
     },
+    "Tier",
     input.productId,
   );
   if (rows.length === 0) return 0;

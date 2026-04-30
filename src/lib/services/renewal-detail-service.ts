@@ -4,7 +4,7 @@ import { formatAddress } from "@/lib/utils/address";
 import { getValidityStatus } from "@/lib/utils/subscription";
 import { getPaymentMethod } from "@/lib/utils/payment";
 import { calculateTax } from "@/lib/services/tax-service";
-import { getAvailableLinkedProducts } from "@/lib/services/linked-products-service";
+import { getAvailableLinkedProducts } from "@/lib/services/linked-product-service";
 import { applyLoyaltyDiscount, type LoyaltyPrice } from "@/lib/services/pricing-service";
 import type {
   PriceLine,

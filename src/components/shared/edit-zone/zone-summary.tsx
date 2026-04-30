@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
+import InvalidZipcode from "@/components/error/invalid-zipcode";
 import { formatPrice } from "@/lib/utils/currency";
 import type {
   ProductRef,
@@ -33,7 +34,7 @@ export default function ZoneSummary({
   invalidZip,
   zipValue,
 }: ZoneSummaryProps) {
-  if (invalidZip) return <InvalidZipMessage zip={zipValue} />;
+  if (invalidZip) return <InvalidZipcode zip={zipValue} />;
 
   const renewalItem = subscription.items.find((item) => item.product.key !== P1_FILTER_KEY) ?? null;
   const existingP1Item = subscription.items.find((item) => item.product.key === P1_FILTER_KEY) ?? null;
@@ -213,13 +214,3 @@ function RenewalIconWithHint({ hint }: { hint: string | null }) {
   );
 }
 
-function InvalidZipMessage({ zip }: { zip: string }) {
-  return (
-    <div className="rounded-2xl border border-status-error-text/40 bg-status-error/40 p-5">
-      <p className="text-[12px] text-status-error-text">
-        This zip code <strong>{zip}</strong> is not in our system yet. Please contact support
-        for assistance.
-      </p>
-    </div>
-  );
-}

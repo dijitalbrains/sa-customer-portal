@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 export type FallbackModel = "Zipcode" | "City" | "State" | "Country";
+export type FallbackTable = "Zone" | "Tier";
 
 export interface AddressLookup {
   countryId: number;
@@ -10,23 +11,50 @@ export interface AddressLookup {
   zip: string;
 }
 
-interface TierPriceRow {
+export interface ZoneRow {
+  zone: number;
+}
+
+export interface TierPriceRow {
   quantity: number | null;
   shipping_price: number;
 }
 
 const ALL_FALLBACK_MODELS: FallbackModel[] = ["Zipcode", "City", "State", "Country"];
 
-export async function resolveTierPrices(
+export async function processFallback(
   address: AddressLookup,
+  tableName: "Zone",
+): Promise<ZoneRow | null>;
+export async function processFallback(
+  address: AddressLookup,
+  tableName: "Tier",
   productId: number,
-): Promise<TierPriceRow[]> {
+): Promise<TierPriceRow[]>;
+export async function processFallback(
+  address: AddressLookup,
+  tableName: FallbackTable,
+  productId?: number,
+): Promise<ZoneRow | null | TierPriceRow[]> {
   const country = await loadCountry(address.countryId);
-  if (!country) return [];
+  if (!country) return tableName === "Zone" ? null : [];
 
-  for (const model of parseFallback(country.tier_fallback)) {
+  const fallbackList = parseFallback(
+    tableName === "Zone" ? country.zone_fallback : country.tier_fallback,
+  );
+
+  for (const model of fallbackList) {
     const objectId = await resolveObjectId(model, address, country.code);
     if (!objectId) continue;
+
+    if (tableName === "Zone") {
+      const row = await prisma.zones.findFirst({
+        where: { object: model, object_id: BigInt(objectId), deleted_at: null },
+        select: { zone: true },
+      });
+      if (row) return { zone: Number(row.zone) };
+      continue;
+    }
 
     const tier = await prisma.tiers.findFirst({
       where: { object: model, object_id: BigInt(objectId) },
@@ -39,37 +67,18 @@ export async function resolveTierPrices(
         country_id: country.id,
         tier: tier.tier,
         product_id: productId,
-        deleted_at: null,
       },
       select: { quantity: true, shipping_price: true },
     });
     if (rows.length > 0) return rows;
   }
 
-  return [];
-}
-
-export async function resolveZone(address: AddressLookup): Promise<number> {
-  const country = await loadCountry(address.countryId);
-  if (!country) return -1;
-
-  for (const model of parseFallback(country.zone_fallback)) {
-    const objectId = await resolveObjectId(model, address, country.code);
-    if (!objectId) continue;
-
-    const row = await prisma.zones.findFirst({
-      where: { object: model, object_id: BigInt(objectId), deleted_at: null },
-      select: { zone: true },
-    });
-    if (row) return Number(row.zone);
-  }
-
-  return -1;
+  return tableName === "Zone" ? null : [];
 }
 
 async function loadCountry(countryId: number) {
   return prisma.countries.findFirst({
-    where: { id: countryId, deleted_at: null },
+    where: { id: countryId },
     select: { id: true, code: true, tier_fallback: true, zone_fallback: true },
   });
 }
@@ -88,9 +97,9 @@ async function resolveObjectId(
 ): Promise<number | null> {
   switch (model) {
     case "Zipcode": {
-      const searchableZip = await getSearchableZip(countryCode, address.zip, address.countryId);
+      const zip = await getSearchableZip(countryCode, address.zip);
       const row = await prisma.zipcodes.findFirst({
-        where: { zip: searchableZip, country_id: address.countryId },
+        where: { zip, country_id: address.countryId, deleted_at: null },
         select: { id: true },
       });
       return row ? Number(row.id) : null;
@@ -111,16 +120,16 @@ async function resolveObjectId(
       return row ? Number(row.id) : null;
     }
     case "Country": {
-      return address.countryId;
+      const row = await prisma.countries.findFirst({
+        where: { id: address.countryId },
+        select: { id: true },
+      });
+      return row ? row.id : null;
     }
   }
 }
 
-async function getSearchableZip(
-  countryCode: string,
-  zip: string,
-  countryId: number,
-): Promise<string> {
+async function getSearchableZip(countryCode: string, zip: string): Promise<string> {
   switch (countryCode) {
     case "CA":
     case "IE":
@@ -128,15 +137,15 @@ async function getSearchableZip(
     case "PL":
       return zip.substring(0, 2);
     case "GB":
-      return resolveGbZip(zip.replace(/\s+/g, ""), countryId);
+      return resolveGbZip(zip.replace(/ /g, ""));
     default:
       return zip;
   }
 }
 
-async function resolveGbZip(zip: string, countryId: number): Promise<string> {
+async function resolveGbZip(zip: string): Promise<string> {
   const exact = await prisma.zipcodes.findFirst({
-    where: { zip, country_id: countryId },
+    where: { zip, deleted_at: null },
     select: { id: true },
   });
   if (exact) return zip;
@@ -144,7 +153,7 @@ async function resolveGbZip(zip: string, countryId: number): Promise<string> {
   if (zip.length > 3) {
     const trimmed = zip.substring(0, zip.length - 3);
     const trimmedMatch = await prisma.zipcodes.findFirst({
-      where: { zip: trimmed, country_id: countryId },
+      where: { zip: trimmed, deleted_at: null },
       select: { id: true },
     });
     if (trimmedMatch) return trimmed;

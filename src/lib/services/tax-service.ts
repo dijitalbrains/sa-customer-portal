@@ -36,11 +36,6 @@ const EMPTY: TaxBreakdown = {
   source: null,
 };
 
-/**
- * High-level facade: fetches the tax percent for an address (TaxJar/CUSTOM/FEDEX)
- * and applies it against a subtotal, accounting for user tax exemption and
- * non-US "estimated tax" handling.
- */
 export async function calculateTax({
   subtotal,
   address,

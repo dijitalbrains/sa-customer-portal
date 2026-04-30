@@ -1,14 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { logActivity } from "@/lib/services/activity-service";
-import { getZone } from "@/lib/services/zone-service";
-import {
-  getLinkedProductKey,
-  getRenewalFilterKey,
-} from "@/lib/services/linked-product-service";
+import { getLinkedProductKey } from "@/lib/services/linked-product-service";
+import { getZone, updateSubscriptionZone } from "@/lib/services/zone-service";
 
 const P1_FILTER_KEY = "p1-filter";
 
@@ -77,7 +72,7 @@ export interface ZoneChangesResult {
   linkedProduct: ProductRef | null;
 }
 
-export async function getEditZoneData(subscriptionId: number): Promise<EditZoneData> {
+export async function EditZone(subscriptionId: number): Promise<EditZoneData> {
   const { userId } = await requireSession();
 
   const sub = await prisma.subscriptions.findFirst({
@@ -112,17 +107,6 @@ export async function getEditZoneData(subscriptionId: number): Promise<EditZoneD
   });
   if (!sub) throw new Error("Subscription not found");
 
-  const items: SubscriptionItemSnapshot[] = sub.subscription_items.map((item) => ({
-    id: Number(item.id),
-    product: toProductRef(item.products_subscription_items_product_idToproducts),
-    quantity: item.quantity ?? 1,
-    validityType: (item.validity_type ?? "MONTHS") as "MONTHS" | "WEEKS",
-    validityValue: item.validity_value ?? 0,
-    linkedProduct: item.products_subscription_items_linked_product_idToproducts
-      ? toProductRef(item.products_subscription_items_linked_product_idToproducts)
-      : null,
-  }));
-
   const subscription: SubscriptionSnapshot = {
     id: Number(sub.id),
     zone: sub.zone ?? 0,
@@ -134,18 +118,26 @@ export async function getEditZoneData(subscriptionId: number): Promise<EditZoneD
     isWellWater: sub.is_well_water,
     hasFiltrationSystem: sub.has_filtration_system,
     hasMicronSystem: sub.has_micron_system,
-    items,
+    items: sub.subscription_items.map((item) => ({
+      id: Number(item.id),
+      product: toProductRef(item.products_subscription_items_product_idToproducts),
+      quantity: item.quantity ?? 1,
+      validityType: (item.validity_type ?? "MONTHS") as "MONTHS" | "WEEKS",
+      validityValue: item.validity_value ?? 0,
+      linkedProduct: item.products_subscription_items_linked_product_idToproducts
+        ? toProductRef(item.products_subscription_items_linked_product_idToproducts)
+        : null,
+    })),
   };
 
   const p1Product = await prisma.products.findFirst({
-    where: { key: P1_FILTER_KEY, deleted_at: null },
+    where: { key: P1_FILTER_KEY },
     select: { id: true, key: true, name: true, price: true },
   });
 
   const countryRows = await prisma.countries.findMany({
-    where: { available_in_country: true, deleted_at: null },
+    where: { available_in_country: true },
     select: { id: true, code: true, name: true },
-    orderBy: { name: "asc" },
   });
 
   return {
@@ -158,36 +150,42 @@ export async function getEditZoneData(subscriptionId: number): Promise<EditZoneD
 export async function getStatesForCountry(countryId: number): Promise<StateOption[]> {
   await requireSession();
   const rows = await prisma.states.findMany({
-    where: { country_id: countryId, deleted_at: null },
+    where: { country_id: countryId },
     select: { id: true, name: true },
-    orderBy: { name: "asc" },
   });
   return rows.map((r) => ({ id: r.id, name: r.name }));
 }
 
+/** Port of legacy RenewalsController::getZoneChanges */
 export async function getZoneChanges(input: ZoneFormInput): Promise<ZoneChangesResult> {
-  const { userId } = await requireSession();
-  const subscription = await loadOwnedSubscription(input.subscriptionId, userId);
-
   const zone = await getZone({
     countryId: input.countryId,
     stateId: input.stateId,
     city: input.city,
     zip: input.zip,
+    householdSize: input.householdSize,
     isWellWater: input.isWellWater,
     hasFiltrationSystem: input.hasFiltrationSystem,
     hasMicronSystem: input.hasMicronSystem,
   });
 
+  const subscription = await prisma.subscriptions.findFirst({
+    where: { id: input.subscriptionId, deleted_at: null },
+    select: { zone: true, products: { select: { key: true } } },
+  });
+  if (!subscription) throw new Error("Subscription not found");
+
   const p1ValidityMonths =
-    zone > 0 ? await fetchP1ValidityMonths(zone, input.householdSize) : null;
+    zone !== 0 && zone !== -1
+      ? await fetchP1ValidityMonths(zone, input.householdSize)
+      : null;
 
   let linkedProduct: ProductRef | null = null;
-  if (zone !== -1) {
+  if (subscription.zone !== zone && zone !== -1) {
     const linkedKey = getLinkedProductKey(subscription.products.key, zone);
     if (linkedKey) {
       const product = await prisma.products.findFirst({
-        where: { key: linkedKey, deleted_at: null },
+        where: { key: linkedKey },
         select: { id: true, key: true, name: true, price: true },
       });
       if (product) linkedProduct = toProductRef(product);
@@ -197,82 +195,35 @@ export async function getZoneChanges(input: ZoneFormInput): Promise<ZoneChangesR
   return { zone, p1ValidityMonths, linkedProduct };
 }
 
+/** Port of legacy RenewalsController::updateZone */
 export async function updateZone(input: ZoneFormInput & { zone: number }) {
   const { userId, actorId } = await requireSession();
-  const subscription = await loadOwnedSubscription(input.subscriptionId, userId);
 
-  await prisma.subscriptions.update({
-    where: { id: input.subscriptionId },
-    data: {
-      country_id: input.countryId,
-      state_id: input.stateId ?? null,
-      city: input.city,
-      zip: input.zip,
-      household_size: input.householdSize,
-      is_well_water: input.isWellWater,
-      has_filtration_system: input.isWellWater ? input.hasFiltrationSystem : null,
-      has_micron_system: input.hasMicronSystem,
-    },
-  });
-
-  if (subscription.zone === input.zone) return;
-
-  if (subscription.products.key === "shower-filter") {
-    await prisma.subscriptions.update({
-      where: { id: input.subscriptionId },
-      data: { zone: input.zone },
-    });
-    await logActivity({
-      userId,
-      actorId,
-      key: "zone-edited",
-      value: `zone ${input.zone}`,
-      object: "Subscription",
-      objectId: input.subscriptionId,
-    });
-    revalidatePath(`/detail/${input.subscriptionId}`);
-    revalidatePath("/");
-    return;
-  }
-
-  const newP1ValidityMonths =
-    input.zone > 0 ? await fetchP1ValidityMonths(input.zone, input.householdSize) : null;
-
-  await syncP1Filter(subscription, input.zone, newP1ValidityMonths);
-  await syncLinkedProduct(subscription, input.zone);
-
-  await prisma.subscriptions.update({
-    where: { id: input.subscriptionId },
-    data: { zone: input.zone },
-  });
-
-  await logActivity({
+  await updateSubscriptionZone({
+    newZone: input.zone,
+    subscriptionId: input.subscriptionId,
     userId,
     actorId,
-    key: "zone-edited",
-    value: `zone ${input.zone}`,
-    object: "Subscription",
-    objectId: input.subscriptionId,
-  });
-
-  revalidatePath(`/detail/${input.subscriptionId}`);
-  revalidatePath("/");
-}
-
-type OwnedSubscription = NonNullable<Awaited<ReturnType<typeof loadOwnedSubscription>>>;
-
-async function loadOwnedSubscription(subscriptionId: number, userId: number) {
-  const sub = await prisma.subscriptions.findFirst({
-    where: { id: subscriptionId, user_id: userId, deleted_at: null },
-    select: {
-      id: true,
-      zone: true,
-      household_size: true,
-      products: { select: { id: true, key: true } },
+    subscriptionData: {
+      countryId: input.countryId,
+      stateId: input.stateId,
+      city: input.city,
+      zip: input.zip,
+      householdSize: input.householdSize,
+      isWellWater: input.isWellWater,
+      hasFiltrationSystem: input.hasFiltrationSystem,
+      hasMicronSystem: input.hasMicronSystem,
     },
   });
-  if (!sub) throw new Error("Subscription not found");
-  return sub;
+}
+
+async function fetchP1ValidityMonths(zone: number, householdSize: number): Promise<number | null> {
+  const rows = await prisma.$queryRaw<{ months: number }[]>`
+    SELECT months FROM p1_validity
+    WHERE zone = ${zone} AND household_size = ${householdSize}
+    LIMIT 1
+  `;
+  return rows[0]?.months ?? null;
 }
 
 function toProductRef(product: {
@@ -287,120 +238,4 @@ function toProductRef(product: {
     name: product.name,
     price: product.price ?? 0,
   };
-}
-
-async function fetchP1ValidityMonths(zone: number, householdSize: number): Promise<number | null> {
-  const rows = await prisma.$queryRaw<{ months: number }[]>`
-    SELECT months FROM p1_validity
-    WHERE zone = ${zone} AND household_size = ${householdSize}
-    LIMIT 1
-  `;
-  return rows[0]?.months ?? null;
-}
-
-async function syncP1Filter(
-  subscription: OwnedSubscription,
-  newZone: number,
-  newP1ValidityMonths: number | null,
-) {
-  const p1Product = await prisma.products.findFirst({
-    where: { key: P1_FILTER_KEY, deleted_at: null },
-    select: { id: true },
-  });
-  if (!p1Product) return;
-
-  const renewalFilter = await prisma.subscription_items.findFirst({
-    where: {
-      subscription_id: subscription.id,
-      product_id: { not: p1Product.id },
-      deleted_at: null,
-    },
-    select: {
-      id: true,
-      ends_at: true,
-      user_stripe_source_id: true,
-      user_bank_account_id: true,
-      user_address_id: true,
-    },
-  });
-  const p1Item = await prisma.subscription_items.findFirst({
-    where: {
-      subscription_id: subscription.id,
-      product_id: p1Product.id,
-      deleted_at: null,
-    },
-    select: { id: true },
-  });
-
-  if (newZone === 0) {
-    if (p1Item) {
-      await prisma.subscription_items.update({
-        where: { id: p1Item.id },
-        data: { deleted_at: new Date() },
-      });
-    }
-    return;
-  }
-
-  if (subscription.zone === 0 && !p1Item && renewalFilter && newP1ValidityMonths) {
-    const hasEndsAt = renewalFilter.ends_at !== null;
-    const now = new Date();
-    await prisma.subscription_items.create({
-      data: {
-        subscription_id: subscription.id,
-        product_id: p1Product.id,
-        user_stripe_source_id: renewalFilter.user_stripe_source_id,
-        user_bank_account_id: renewalFilter.user_bank_account_id,
-        user_address_id: renewalFilter.user_address_id,
-        status: "ACTIVE",
-        validity_type: "MONTHS",
-        validity_value: newP1ValidityMonths,
-        starts_at: hasEndsAt ? now : null,
-        ends_at: hasEndsAt ? addMonths(now, newP1ValidityMonths) : null,
-        upcoming_reminder: hasEndsAt ? addMonths(now, newP1ValidityMonths) : null,
-      },
-    });
-    return;
-  }
-
-  if (p1Item && newP1ValidityMonths) {
-    await prisma.subscription_items.update({
-      where: { id: p1Item.id },
-      data: { validity_type: "MONTHS", validity_value: newP1ValidityMonths },
-    });
-  }
-}
-
-async function syncLinkedProduct(subscription: OwnedSubscription, newZone: number) {
-  const renewalFilterKey = getRenewalFilterKey(subscription.products.key);
-  if (!renewalFilterKey) return;
-
-  const renewalFilterProduct = await prisma.products.findFirst({
-    where: { key: renewalFilterKey, deleted_at: null },
-    select: { id: true },
-  });
-  if (!renewalFilterProduct) return;
-
-  const linkedKey = getLinkedProductKey(subscription.products.key, newZone);
-  const linkedProduct = linkedKey
-    ? await prisma.products.findFirst({
-        where: { key: linkedKey, deleted_at: null },
-        select: { id: true },
-      })
-    : null;
-
-  await prisma.subscription_items.updateMany({
-    where: {
-      subscription_id: subscription.id,
-      product_id: renewalFilterProduct.id,
-      deleted_at: null,
-    },
-    data: { linked_product_id: linkedProduct?.id ?? null },
-  });
-}
-
-function addMonths(date: Date, months: number): Date {
-  const out = new Date(date);
-  out.setMonth(out.getMonth() + months);
-  return out;
 }

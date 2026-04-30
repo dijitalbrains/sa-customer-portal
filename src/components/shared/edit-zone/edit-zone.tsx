@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import {
-  getEditZoneData,
+  EditZone as fetchEditZoneData,
   updateZone,
   type EditZoneData,
 } from "@/lib/actions/zone.actions";
@@ -20,13 +20,17 @@ interface EditZoneProps {
   subscriptionId: number;
 }
 
-export default function EditZone({ open, onClose, subscriptionId }: EditZoneProps) {
+export default function EditZone({
+  open,
+  onClose,
+  subscriptionId,
+}: EditZoneProps) {
   const [zoneData, setZoneData] = useState<EditZoneData | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setZoneData(null);
-    getEditZoneData(subscriptionId)
+    fetchEditZoneData(subscriptionId)
       .then(setZoneData)
       .catch(() => {
         toast.error("Failed to load setup");
@@ -64,7 +68,10 @@ function EditZoneContainer({ data, onClose }: EditZoneContainerProps) {
   const [error, setError] = useState<string | null>(null);
 
   const canSave =
-    zone.view.isComplete && !zone.view.invalidZip && !zone.view.loadingPreview && !saving;
+    zone.view.isComplete &&
+    !zone.view.invalidZip &&
+    !zone.view.loadingPreview &&
+    !saving;
 
   const submit = () => {
     setError(null);
@@ -81,7 +88,8 @@ function EditZoneContainer({ data, onClose }: EditZoneContainerProps) {
         toast.success("Setup updated");
         onClose();
       } catch (e) {
-        const message = e instanceof Error ? e.message : "Failed to update setup";
+        const message =
+          e instanceof Error ? e.message : "Failed to update setup";
         toast.error(message);
         setError(message);
       }
@@ -149,9 +157,7 @@ function Header({ onClose }: { onClose: () => void }) {
     <div className="border-b border-border-subtle/50">
       <div className="flex items-center justify-between gap-3 px-7 py-3">
         <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-[#eef6fc] flex items-center justify-center">
-            <img src="/assets/icons/figma/setup-icon.svg" alt="" />
-          </span>
+          <img src="/assets/icons/figma/setup-icon.svg" alt="" />
           <h3 className="font-bold text-[17px] text-text-heading leading-tight">
             Customize your setup
           </h3>
