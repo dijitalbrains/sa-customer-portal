@@ -34,7 +34,7 @@ export default function AddressFields({
       <select
         value={countryId ?? ""}
         onChange={(e) => onCountry(Number(e.target.value))}
-        className="w-full h-10 px-3 pr-8 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary"
+        className="w-full h-10 px-3 pr-8 rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary"
       >
         <option value="" disabled>
           Country
@@ -50,7 +50,7 @@ export default function AddressFields({
         value={stateId ?? ""}
         onChange={(e) => onState(Number(e.target.value))}
         disabled={loadingStates || states.length === 0}
-        className="w-full h-10 px-3 pr-8 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary disabled:opacity-60"
+        className="w-full h-10 px-3 pr-8 rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-brand-primary disabled:opacity-60"
       >
         <option value="" disabled>
           {loadingStates ? "Loading…" : "State / Province"}
@@ -67,7 +67,7 @@ export default function AddressFields({
         value={city}
         onChange={(e) => onCity(e.target.value)}
         placeholder="City"
-        className="w-full h-10 px-3 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
+        className="w-full h-10 px-3 rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
       />
 
       <input
@@ -75,7 +75,7 @@ export default function AddressFields({
         value={zip}
         onChange={(e) => onZip(e.target.value)}
         placeholder="Enter Zip / Postal code"
-        className="w-full h-10 px-3 rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
+        className="w-full h-10 px-3 rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary"
       />
     </div>
   );

@@ -43,7 +43,7 @@ export default function ZoneQuestions({
         <select
           value={householdSize}
           onChange={(e) => onHouseholdSize(Number(e.target.value))}
-          className="w-full h-10 px-3 pr-8 appearance-none rounded-lg bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
+          className="w-full h-10 px-3 pr-8 appearance-none rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
         >
           {HOUSEHOLD_OPTIONS.map((option) => (
             <option key={option.value} value={option.value} disabled={option.disabled}>
