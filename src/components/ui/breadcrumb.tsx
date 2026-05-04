@@ -7,7 +7,8 @@ export type PageKey =
   | "order-detail"
   | "account"
   | "support"
-  | "shipping-addresses";
+  | "shipping-addresses"
+  | "manage-reminders";
 
 interface BreadcrumbStep {
   label: string;
@@ -22,6 +23,7 @@ const PARENTS: Record<PageKey, BreadcrumbStep[]> = {
   "account": [],
   "support": [],
   "shipping-addresses": [{ label: "My Account", href: "/account" }],
+  "manage-reminders": [{ label: "My Account", href: "/account" }],
 };
 
 interface BreadcrumbProps {

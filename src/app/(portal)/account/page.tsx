@@ -70,7 +70,7 @@ export default async function AccountPage() {
             icon={<SpeakerIcon />}
             title="Renewal Reminders"
             manageLabel="Manage Reminders"
-            manageHref="/alert-settings"
+            manageHref="/alerts"
           >
             <ManageRow
               title={`${account.subscriptionCount} ${account.subscriptionCount === 1 ? "renewal" : "renewals"} saved`}
