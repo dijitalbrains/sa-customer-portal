@@ -5,17 +5,7 @@ import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/services/activity-service";
 import { calculateShipping, type ShippingResult } from "@/lib/services/shipping-service";
-
-export type ValidityType = "MONTHS" | "WEEKS";
-
-export interface PreferencesPayload {
-  itemId: number;
-  unusedItems: number;
-  validityType: ValidityType;
-  validityValue: number;
-  quantity: number;
-  upcomingReminder: string;
-}
+import type { PreferencesPayload, ValidityType } from "@/lib/types/preferences";
 
 export async function updatePreferences(payload: PreferencesPayload) {
   const { userId, actorId } = await requireSession();

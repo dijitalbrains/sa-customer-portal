@@ -1,3 +1,4 @@
+import Avatar from "@/components/ui/avatar";
 import type { UserAccount } from "@/lib/types/user";
 
 interface HeaderProps {
@@ -13,9 +14,12 @@ export default function Header({ user }: HeaderProps) {
       <div className="relative flex items-center gap-6 min-w-0">
         <div className="relative shrink-0">
           <div className="absolute inset-[-10px] rounded-full bg-white/10" />
-          <div className="relative w-20 h-20 rounded-full bg-avatar-gradient flex items-center justify-center">
-            <span className="text-[26px] font-bold text-white">{user.initials || "?"}</span>
-          </div>
+          <Avatar
+            initials={user.initials}
+            size={80}
+            bgClass="bg-avatar-gradient"
+            className="relative"
+          />
         </div>
 
         <div className="flex flex-col gap-0.5 min-w-0">

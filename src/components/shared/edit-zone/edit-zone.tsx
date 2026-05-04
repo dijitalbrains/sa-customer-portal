@@ -3,11 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import {
-  EditZone as fetchEditZoneData,
-  updateZone,
-  type EditZoneData,
-} from "@/lib/actions/zone.actions";
+import { EditZone as fetchEditZoneData, updateZone } from "@/lib/actions/zone.actions";
+import type { EditZoneData } from "@/lib/types/zone";
 import { useEditZone } from "@/lib/hooks/use-edit-zone";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import AddressFields from "./address-fields";

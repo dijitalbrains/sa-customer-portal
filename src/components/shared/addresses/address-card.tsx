@@ -1,5 +1,7 @@
 "use client";
 
+import Avatar from "@/components/ui/avatar";
+import { getInitials } from "@/lib/utils/initials";
 import type { UserAddressView } from "@/lib/types/address";
 
 interface AddressCardProps {
@@ -31,7 +33,9 @@ export default function AddressCard({
         <div className="flex items-center gap-3">
           <Avatar
             initials={getInitials(address.name)}
-            inverted={isDefault}
+            size={36}
+            bgClass={isDefault ? "bg-white/20" : "bg-[#eef6fc]"}
+            textClass={isDefault ? "text-white" : "text-brand-primary"}
           />
           <div className="flex flex-col min-w-0 flex-1 leading-tight gap-0.5">
             <span
@@ -116,24 +120,3 @@ export default function AddressCard({
   );
 }
 
-function Avatar({ initials, inverted }: { initials: string; inverted: boolean }) {
-  return (
-    <span
-      className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold shrink-0 ${
-        inverted ? "bg-white/20 text-white" : "bg-[#eef6fc] text-brand-primary"
-      }`}
-    >
-      {initials || "?"}
-    </span>
-  );
-}
-
-function getInitials(name: string | null): string {
-  if (!name) return "";
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((p) => p.charAt(0).toUpperCase())
-    .join("");
-}

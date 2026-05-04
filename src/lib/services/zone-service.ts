@@ -7,6 +7,11 @@ import {
   getRenewalFilterKey,
 } from "@/lib/services/linked-product-service";
 import { processFallback } from "@/lib/services/territory-service";
+import type {
+  ProductRef,
+  ZoneChangesResult,
+  ZoneFormInput,
+} from "@/lib/types/zone";
 
 const P1_FILTER_KEY = "p1-filter";
 const SHOWER_FILTER_KEY = "shower-filter";
@@ -36,6 +41,51 @@ export async function getZone(subscriptionData: ZoneSubscriptionData): Promise<n
     "Zone",
   );
   return zoneRow ? zoneRow.zone : -1;
+}
+
+export async function getZoneChangePreview(input: ZoneFormInput): Promise<ZoneChangesResult> {
+  const zone = await getZone({
+    countryId: input.countryId,
+    stateId: input.stateId,
+    city: input.city,
+    zip: input.zip,
+    householdSize: input.householdSize,
+    isWellWater: input.isWellWater,
+    hasFiltrationSystem: input.hasFiltrationSystem,
+    hasMicronSystem: input.hasMicronSystem,
+  });
+
+  const subscription = await prisma.subscriptions.findFirst({
+    where: { id: input.subscriptionId, deleted_at: null },
+    select: { zone: true, products: { select: { key: true } } },
+  });
+  if (!subscription) throw new Error("Subscription not found");
+
+  const p1ValidityMonths =
+    zone !== 0 && zone !== -1
+      ? await fetchP1ValidityMonths(zone, input.householdSize)
+      : null;
+
+  let linkedProduct: ProductRef | null = null;
+  if (subscription.zone !== zone && zone !== -1) {
+    const linkedKey = getLinkedProductKey(subscription.products.key, zone);
+    if (linkedKey) {
+      const product = await prisma.products.findFirst({
+        where: { key: linkedKey },
+        select: { id: true, key: true, name: true, price: true },
+      });
+      if (product) {
+        linkedProduct = {
+          id: product.id,
+          key: product.key,
+          name: product.name,
+          price: product.price ?? 0,
+        };
+      }
+    }
+  }
+
+  return { zone, p1ValidityMonths, linkedProduct };
 }
 
 interface UpdateSubscriptionZoneInput {

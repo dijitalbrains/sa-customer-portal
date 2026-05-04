@@ -8,7 +8,7 @@ import type {
   ProductRef,
   SubscriptionItemSnapshot,
   SubscriptionSnapshot,
-} from "@/lib/actions/zone.actions";
+} from "@/lib/types/zone";
 
 const P1_FILTER_KEY = "p1-filter";
 const SHOWER_FILTER_KEY = "shower-filter";

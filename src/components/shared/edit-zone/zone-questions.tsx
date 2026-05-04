@@ -1,5 +1,6 @@
 "use client";
 
+import DropdownField from "@/components/ui/dropdown-field";
 import TabButtonGroup from "@/components/ui/tab-button-group";
 
 const HOUSEHOLD_OPTIONS = [
@@ -40,17 +41,11 @@ export default function ZoneQuestions({
         <span className="text-[13px] font-bold text-text-heading">
           How many people will be drinking the water?
         </span>
-        <select
+        <DropdownField
           value={householdSize}
-          onChange={(e) => onHouseholdSize(Number(e.target.value))}
-          className="w-full h-10 px-3 pr-8 appearance-none rounded-[8px] bg-white border border-border-subtle text-[13px] text-text-primary focus:outline-none focus:border-brand-primary cursor-pointer"
-        >
-          {HOUSEHOLD_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} disabled={option.disabled}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+          onChange={onHouseholdSize}
+          options={HOUSEHOLD_OPTIONS}
+        />
       </div>
 
       <div className="flex flex-col gap-2">

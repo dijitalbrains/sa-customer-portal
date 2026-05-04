@@ -3,21 +3,36 @@
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import DropdownField from "@/components/ui/dropdown-field";
+import TabButtonGroup from "@/components/ui/tab-button-group";
 import PricingSummary, { type PricingSummaryProps } from "@/components/shared/pricing-summary";
-import { useEditPreferences } from "@/app/(portal)/detail/_hooks/use-edit-preferences";
+import { useEditPreferences } from "@/lib/hooks/use-edit-preferences";
 import { updatePreferences } from "@/lib/actions/preferences.actions";
+import { formatNumericDate } from "@/lib/utils/date";
 import type { RenewalItem } from "@/lib/types/subscription";
-import StepInventory from "./step-inventory";
-import StepFrequency from "./step-frequency";
+import type { ValidityType } from "@/lib/types/preferences";
+import StepSection from "./step-section";
 import StepReminder from "./step-reminder";
 import StepQuantity from "./step-quantity";
-import StepReview from "./step-review";
 
 interface EditPreferencesProps {
   open: boolean;
   onClose: () => void;
   item: RenewalItem;
 }
+
+const INVENTORY_OPTIONS = Array.from({ length: 21 }, (_, i) => ({
+  value: i,
+  label: String(i),
+}));
+
+const VALIDITY_TYPE_OPTIONS: { label: string; value: ValidityType }[] = [
+  { label: "Months", value: "MONTHS" },
+  { label: "Weeks", value: "WEEKS" },
+];
+
+const MONTH_OPTIONS = buildValidityValueOptions(24, "month");
+const WEEK_OPTIONS = buildValidityValueOptions(80, "week");
 
 export default function EditPreferences({ open, onClose, item }: EditPreferencesProps) {
   const pref = useEditPreferences(item);
@@ -68,26 +83,46 @@ export default function EditPreferences({ open, onClose, item }: EditPreferences
             }`}
           >
             <div className="flex flex-col gap-4">
-              <StepInventory
-                productName={item.productName}
-                value={pref.view.unusedItems}
-                onChange={pref.setUnusedItems}
-              />
-              <StepFrequency
-                productName={item.productName}
-                validityType={pref.view.validityType}
-                validityValue={pref.view.validityValue}
-                onValidityType={pref.setValidityType}
-                onValidityValue={pref.setValidityValue}
-              />
+              <StepSection
+                number={1}
+                title="Current filter inventory"
+                description={`How many unopened/unused ${item.productName} filters do you have?`}
+              >
+                <DropdownField
+                  value={pref.view.unusedItems}
+                  onChange={pref.setUnusedItems}
+                  options={INVENTORY_OPTIONS}
+                />
+              </StepSection>
+
+              <StepSection
+                number={2}
+                title="Renewal frequency"
+                description={`How often do you want to change your ${item.productName} filter?`}
+              >
+                <div className="mb-2.5">
+                  <TabButtonGroup
+                    options={VALIDITY_TYPE_OPTIONS}
+                    value={pref.view.validityType}
+                    onChange={pref.setValidityType}
+                  />
+                </div>
+                <DropdownField
+                  value={pref.view.validityValue}
+                  onChange={pref.setValidityValue}
+                  options={pref.view.validityType === "MONTHS" ? MONTH_OPTIONS : WEEK_OPTIONS}
+                />
+              </StepSection>
+
               <StepReminder
                 value={pref.view.upcomingReminder}
                 validityValue={pref.view.validityValue}
                 validityType={pref.view.validityType}
                 onChange={pref.setUpcomingReminder}
               />
+
               {!isLoyalty && (
-                <StepReview
+                <ReviewSection
                   stepNumber={reviewStepNumber}
                   unusedItems={pref.view.unusedItems}
                   upcomingReminder={pref.view.upcomingReminder}
@@ -104,7 +139,7 @@ export default function EditPreferences({ open, onClose, item }: EditPreferences
                   value={pref.view.quantity}
                   onChange={pref.setQuantity}
                 />
-                <StepReview
+                <ReviewSection
                   stepNumber={reviewStepNumber}
                   unusedItems={pref.view.unusedItems}
                   upcomingReminder={pref.view.upcomingReminder}
@@ -139,7 +174,7 @@ function Header({ onClose }: { onClose: () => void }) {
     <div className="border-b border-border-subtle/50">
       <div className="flex items-center justify-between gap-3 px-7 py-3">
         <div className="flex items-center gap-3">
-            <img src="/assets/icons/setup-icon.svg" alt="" />
+          <img src="/assets/icons/setup-icon.svg" alt="" />
           <h3 className="font-bold text-[17px] text-text-heading leading-tight">
             Edit Preferences
           </h3>
@@ -153,6 +188,50 @@ function Header({ onClose }: { onClose: () => void }) {
           <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
         </button>
       </div>
+    </div>
+  );
+}
+
+interface ReviewSectionProps {
+  stepNumber: number;
+  unusedItems: number;
+  upcomingReminder: Date | null;
+  quantity: number;
+  showQuantity: boolean;
+}
+
+function ReviewSection({
+  stepNumber,
+  unusedItems,
+  upcomingReminder,
+  quantity,
+  showQuantity,
+}: ReviewSectionProps) {
+  return (
+    <StepSection
+      number={stepNumber}
+      title="Review & save"
+      description="Review your preferences before saving."
+    >
+      <div className="rounded-lg border border-border-subtle/50 bg-surface-overlay px-2.5 py-2 flex flex-col gap-1 text-[9px]">
+        <ReviewRow label="Current Filter Inventory:" value={String(unusedItems)} />
+        <ReviewRow
+          label="Your next filter change reminder:"
+          value={upcomingReminder ? formatNumericDate(upcomingReminder) : "Pending Install"}
+        />
+        {showQuantity && (
+          <ReviewRow label="Quantity on your next shipment:" value={formatPack(quantity)} />
+        )}
+      </div>
+    </StepSection>
+  );
+}
+
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="font-semibold text-text-muted">{label}</span>
+      <span className="font-bold text-text-primary">{value}</span>
     </div>
   );
 }
@@ -173,4 +252,18 @@ function buildSummaryProps(
     total: view.total,
     fillParent: true,
   };
+}
+
+function buildValidityValueOptions(max: number, unit: "month" | "week") {
+  return [
+    { value: 0, label: "Select a value" },
+    ...Array.from({ length: max }, (_, i) => ({
+      value: i + 1,
+      label: `${i + 1} ${unit}${i === 0 ? "" : "s"}`,
+    })),
+  ];
+}
+
+function formatPack(quantity: number): string {
+  return quantity > 1 ? `Pack of ${quantity}` : String(quantity);
 }

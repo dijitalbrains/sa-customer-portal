@@ -4,7 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import StepSection from "./step-section";
 import { formatLongDate } from "@/lib/utils/date";
-import type { ValidityType } from "@/lib/actions/preferences.actions";
+import type { ValidityType } from "@/lib/types/preferences";
 
 interface StepReminderProps {
   value: Date;

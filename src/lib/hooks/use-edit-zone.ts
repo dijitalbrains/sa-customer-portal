@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import {
-  getStatesForCountry,
-  getZoneChanges,
-  type ProductRef,
-  type StateOption,
-  type SubscriptionSnapshot,
-  type ZoneFormInput,
-} from "@/lib/actions/zone.actions";
+import { getStatesForCountry, getZoneChanges } from "@/lib/actions/zone.actions";
+import type { StateOption } from "@/lib/types/reference";
+import type {
+  ProductRef,
+  SubscriptionSnapshot,
+  ZoneFormInput,
+} from "@/lib/types/zone";
 
 const PREVIEW_DEBOUNCE_MS = 300;
 

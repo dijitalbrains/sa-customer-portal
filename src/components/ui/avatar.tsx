@@ -1,13 +1,22 @@
 interface AvatarProps {
   initials: string;
   size?: number;
+  bgClass?: string;
+  textClass?: string;
+  className?: string;
 }
 
-export default function Avatar({ initials, size = 72 }: AvatarProps) {
+export default function Avatar({
+  initials,
+  size = 36,
+  bgClass = "bg-brand-gradient",
+  textClass = "text-white",
+  className = "",
+}: AvatarProps) {
   return (
     <div
-      className="text-white rounded-full bg-brand-gradient text-text-heading font-bold flex items-center justify-center shrink-0"
-      style={{ width: size, height: size, fontSize: size * 0.35 }}
+      className={`rounded-full flex items-center justify-center font-bold shrink-0 ${bgClass} ${textClass} ${className}`}
+      style={{ width: size, height: size, fontSize: Math.round(size * 0.33) }}
     >
       {initials || "?"}
     </div>

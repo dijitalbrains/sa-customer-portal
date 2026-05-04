@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { getShippingPriceForItem } from "@/lib/actions/preferences.actions";
 import type { PriceLine, RenewalItem } from "@/lib/types/subscription";
-import {
-  getShippingPriceForItem,
-  type ValidityType,
-} from "@/lib/actions/preferences.actions";
+import type { ValidityType } from "@/lib/types/preferences";
 
 export interface PreferencesState {
   unusedItems: number;
