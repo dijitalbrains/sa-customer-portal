@@ -3,7 +3,7 @@
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { requireUserId } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAccountSummary } from "@/lib/services/user-service";
 import { logLeadBlocking } from "@/lib/services/lead-blocking-service";
@@ -15,12 +15,12 @@ import {
 } from "@/lib/validation/account";
 
 export async function getAccount() {
-  const userId = await requireUserId();
+  const { userId } = await getAuth();
   return getAccountSummary(userId);
 }
 
 export async function updatePersonalInfo(input: PersonalInfoInput) {
-  const userId = await requireUserId();
+  const { userId } = await getAuth();
   const data = personalInfoSchema.parse(input);
 
   const currentUser = await prisma.users.findFirst({
@@ -75,7 +75,7 @@ export async function updatePersonalInfo(input: PersonalInfoInput) {
 }
 
 export async function updatePassword(input: ChangePasswordInput) {
-  const userId = await requireUserId();
+  const { userId } = await getAuth();
   const data = changePasswordSchema.parse(input);
 
   const user = await prisma.users.findFirst({

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/services/activity-service";
 
@@ -11,7 +11,7 @@ export interface PauseInput {
 }
 
 export async function pauseSubscriptionItems({ subscriptionItemIds, pauseMonths }: PauseInput) {
-  const { userId, actorId } = await requireSession();
+  const { userId, actorId } = await getAuth();
   if (subscriptionItemIds.length === 0) throw new Error("Select at least one item to pause");
 
   const items = await prisma.subscription_items.findMany({

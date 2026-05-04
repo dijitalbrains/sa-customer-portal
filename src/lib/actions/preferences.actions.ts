@@ -1,14 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSession } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/services/activity-service";
 import { calculateShipping, type ShippingResult } from "@/lib/services/shipping-service";
 import type { PreferencesPayload, ValidityType } from "@/lib/types/preferences";
 
 export async function updatePreferences(payload: PreferencesPayload) {
-  const { userId, actorId } = await requireSession();
+  const { userId, actorId } = await getAuth();
   const { itemId, validityType, validityValue, quantity } = payload;
 
   const item = await prisma.subscription_items.findFirst({
@@ -60,7 +60,7 @@ export async function getShippingPriceForItem(
   itemId: number,
   quantity: number,
 ): Promise<ShippingResult> {
-  const { userId } = await requireSession();
+  const { userId } = await getAuth();
   const item = await prisma.subscription_items.findFirst({
     where: { id: itemId, deleted_at: null, subscriptions: { user_id: userId, deleted_at: null } },
     select: {

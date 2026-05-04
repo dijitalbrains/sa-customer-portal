@@ -1,6 +1,6 @@
 "use server";
 
-import { requireSession } from "@/lib/auth";
+import { getAuth } from "@/lib/auth";
 import { listStatesByCountry } from "@/lib/services/state-service";
 import { getEditZoneData } from "@/lib/services/renewal-service";
 import {
@@ -15,12 +15,12 @@ import type {
 } from "@/lib/types/zone";
 
 export async function EditZone(subscriptionId: number): Promise<EditZoneData> {
-  const { userId } = await requireSession();
+  const { userId } = await getAuth();
   return getEditZoneData(subscriptionId, userId);
 }
 
 export async function getStatesForCountry(countryId: number): Promise<StateOption[]> {
-  await requireSession();
+  await getAuth();
   return listStatesByCountry(countryId);
 }
 
@@ -29,7 +29,7 @@ export async function getZoneChanges(input: ZoneFormInput): Promise<ZoneChangesR
 }
 
 export async function updateZone(input: ZoneFormInput & { zone: number }) {
-  const { userId, actorId } = await requireSession();
+  const { userId, actorId } = await getAuth();
 
   await updateSubscriptionZone({
     newZone: input.zone,

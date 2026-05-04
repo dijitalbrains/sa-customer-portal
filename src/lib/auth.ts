@@ -46,17 +46,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 });
 
-export async function requireAuth() {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
-  return session;
-}
-
-export async function requireUserId(): Promise<number> {
-  const session = await requireAuth();
-  return Number(session.user.id);
-}
-
 export interface AuthSession {
   userId: number;
   adminId: number;
@@ -64,8 +53,10 @@ export interface AuthSession {
   isAdmin: boolean;
 }
 
-export async function requireSession(): Promise<AuthSession> {
-  const session = await requireAuth();
+export async function getAuth(): Promise<AuthSession> {
+  const session = await auth();
+  if (!session?.user?.id) throw new Error("Unauthorized");
+
   const userId = Number(session.user.id);
   const adminId = session.adminId ?? 0;
   const isAdmin = adminId > 0;
