@@ -109,7 +109,7 @@ export default function AddressCard({
             <button
               type="button"
               onClick={onSetDefault}
-              className="flex-1 h-8 px-4 rounded-[8px] bg-brand-gradient text-[11px] font-semibold text-white hover:opacity-95 cursor-pointer"
+              className="flex-1 h-8 px-4 rounded-[8px] bg-brand-gradient text-[11px] font-semibold text-white shadow-[0px_3px_8px_0px_#3792DE40] hover:opacity-95 cursor-pointer"
             >
               Set as Default
             </button>
