@@ -6,7 +6,7 @@ import type {
   StripePaymentIntent,
   StripePaymentMethod,
 } from "@/lib/types/stripe";
-import { getStripeClient } from "./stripe-client";
+import { getStripeClient } from "./client";
 import { toStripeCardError, toStripeError } from "@/lib/errors/stripe-error";
 
 export async function createCustomer(input: CreateCustomerInput): Promise<StripeCustomer> {

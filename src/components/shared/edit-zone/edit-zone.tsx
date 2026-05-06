@@ -2,11 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "react-toastify";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import { EditZone as fetchEditZoneData, updateZone } from "@/lib/actions/zone.actions";
 import type { EditZoneData } from "@/lib/types/zone";
 import { useEditZone } from "@/lib/hooks/use-edit-zone";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import Modal from "@/components/ui/modal";
 import AddressFields from "./address-fields";
 import ZoneQuestions from "./zone-questions";
 import ZoneSummary from "./zone-summary";
@@ -36,21 +36,16 @@ export default function EditZone({
   }, [open, subscriptionId, onClose]);
 
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-text-heading/50 backdrop-blur-[2px]" />
-      <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-        <DialogPanel className="relative bg-white rounded-3xl shadow-[0px_0px_0px_1px_rgba(55,146,222,0.08),0px_32px_80px_-8px_rgba(8,20,40,0.5)] w-full max-w-[960px]">
-          <Header onClose={onClose} />
-          {zoneData ? (
-            <EditZoneContainer data={zoneData} onClose={onClose} />
-          ) : (
-            <div className="flex items-center justify-center py-16">
-              <LoadingSpinner />
-            </div>
-          )}
-        </DialogPanel>
-      </div>
-    </Dialog>
+    <Modal open={open} onClose={onClose} width="max-w-[960px]" showClose={false}>
+      <Header onClose={onClose} />
+      {zoneData ? (
+        <EditZoneContainer data={zoneData} onClose={onClose} />
+      ) : (
+        <div className="flex items-center justify-center py-16">
+          <LoadingSpinner />
+        </div>
+      )}
+    </Modal>
   );
 }
 

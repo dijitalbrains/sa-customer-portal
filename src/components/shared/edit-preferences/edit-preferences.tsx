@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "react-toastify";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
 import DropdownField from "@/components/ui/dropdown-field";
+import Modal from "@/components/ui/modal";
 import TabButtonGroup from "@/components/ui/tab-button-group";
 import PricingSummary, { type PricingSummaryProps } from "@/components/shared/pricing-summary";
 import { useEditPreferences } from "@/lib/hooks/use-edit-preferences";
@@ -67,21 +67,19 @@ export default function EditPreferences({ open, onClose, item }: EditPreferences
   };
 
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-text-heading/50 backdrop-blur-[2px]" />
-      <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-        <DialogPanel
-          className={`relative bg-white rounded-3xl shadow-[0px_0px_0px_1px_rgba(55,146,222,0.08),0px_32px_80px_-8px_rgba(8,20,40,0.5)] w-full ${
-            isLoyalty ? "max-w-[1020px]" : "max-w-[540px]"
-          }`}
-        >
-          <Header onClose={onClose} />
+    <Modal
+      open={open}
+      onClose={onClose}
+      width={isLoyalty ? "max-w-[1020px]" : "max-w-[540px]"}
+      showClose={false}
+    >
+      <Header onClose={onClose} />
 
-          <div
-            className={`grid gap-6 px-7 py-4 ${
-              isLoyalty ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
-            }`}
-          >
+      <div
+        className={`grid gap-6 px-7 py-4 ${
+          isLoyalty ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"
+        }`}
+      >
             <div className="flex flex-col gap-4">
               <StepSection
                 number={1}
@@ -163,9 +161,7 @@ export default function EditPreferences({ open, onClose, item }: EditPreferences
               {pending ? "Saving…" : "Update and Save"}
             </button>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
+    </Modal>
   );
 }
 

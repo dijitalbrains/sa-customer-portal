@@ -4,7 +4,7 @@ import {
   attachCardPaymentMethod,
   createCustomer,
   updateCardExpiry as updateCardExpiryOnStripe,
-} from "./stripe-service";
+} from "./stripe/stripe-service";
 import { getCardStatus } from "@/lib/utils/payment";
 import type { CardInput, CardPaymentMethod } from "@/lib/types/card";
 
