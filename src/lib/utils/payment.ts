@@ -1,6 +1,5 @@
 import type { PaymentMethod } from "@/lib/types/payment";
-
-export type CardStatus = "GOOD" | "EXPIRED" | "EXPIRING_SOON" | "FAILED";
+import type { CardStatus } from "@/lib/types/card";
 
 interface PaymentSource {
   user_bank_accounts: { bank_name: string | null; last4: string | null } | null;

@@ -11,5 +11,19 @@ export interface CardPaymentMethod {
   isDefault: boolean;
   status: CardStatus;
   activeSubscriptions: number;
-  expiredSubscriptions: number;
+}
+
+export interface CardInput {
+  paymentMethodId: string;
+  brand: string;
+  last4: string;
+  expMonth: string;
+  expYear: string;
+  nameOnCard: string | null;
+  isDefault: boolean;
+}
+
+export interface CardFormContext {
+  name: string;
+  email: string;
 }

@@ -1,6 +1,12 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
-import type { CardPaymentMethod, CardStatus } from "@/lib/types/card";
+import {
+  attachCardPaymentMethod,
+  createCustomer,
+  updateCardExpiry as updateCardExpiryOnStripe,
+} from "./stripe-service";
+import { getCardStatus } from "@/lib/utils/payment";
+import type { CardInput, CardPaymentMethod } from "@/lib/types/card";
 
 export async function listUserCards(userId: number): Promise<CardPaymentMethod[]> {
   const cards = await prisma.user_stripe_sources.findMany({
@@ -9,21 +15,7 @@ export async function listUserCards(userId: number): Promise<CardPaymentMethod[]
     select: cardSelect,
   });
 
-  if (cards.length === 0) return [];
-
-  const ids = cards.map((c) => c.id);
-  const [active, expired] = await Promise.all([
-    countActiveSubscriptionsPerCard(ids),
-    countExpiredSubscriptionsPerCard(ids),
-  ]);
-
-  return cards.map((card) =>
-    toCardPaymentMethod(
-      card,
-      active.get(Number(card.id)) ?? 0,
-      expired.get(Number(card.id)) ?? 0,
-    ),
-  );
+  return cards.map(toCardPaymentMethod);
 }
 
 export async function setDefaultUserCard(
@@ -46,6 +38,180 @@ export async function setDefaultUserCard(
   });
 }
 
+export async function createUserCard(
+  userId: number,
+  input: CardInput,
+): Promise<CardPaymentMethod> {
+  const user = await prisma.users.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      firstname: true,
+      lastname: true,
+      email: true,
+      stripe_customer_id: true,
+    },
+  });
+  if (!user) throw new Error("User not found");
+  if (!user.email) throw new Error("User email is required to create a Stripe customer");
+
+  const fullName = `${user.firstname} ${user.lastname ?? ""}`.trim();
+
+  let customerId = user.stripe_customer_id;
+  if (!customerId) {
+    const customer = await createCustomer({
+      paymentMethodId: input.paymentMethodId,
+      name: fullName,
+      email: user.email,
+    });
+    customerId = customer.id;
+    await prisma.users.update({
+      where: { id: userId },
+      data: { stripe_customer_id: customerId },
+    });
+  } else {
+    await attachCardPaymentMethod(customerId, input.paymentMethodId);
+  }
+
+  const existingDefault = await prisma.user_stripe_sources.findFirst({
+    where: { user_id: userId, is_default: true, deleted_at: null },
+    select: { id: true },
+  });
+  const shouldBeDefault = input.isDefault || !existingDefault;
+
+  if (shouldBeDefault && existingDefault) {
+    await prisma.user_stripe_sources.updateMany({
+      where: { user_id: userId, is_default: true },
+      data: { is_default: false },
+    });
+  }
+
+  const created = await prisma.user_stripe_sources.create({
+    data: {
+      user_id: userId,
+      stripe_source_id: input.paymentMethodId,
+      brand: input.brand,
+      last4: input.last4,
+      exp_month: input.expMonth,
+      exp_year: input.expYear,
+      name_on_card: input.nameOnCard,
+      is_default: shouldBeDefault,
+    },
+    select: cardSelect,
+  });
+
+  return toCardPaymentMethod(created);
+}
+
+export async function updateUserCardExpiry(
+  cardId: number,
+  userId: number,
+  expMonth: string,
+  expYear: string,
+): Promise<void> {
+  const card = await prisma.user_stripe_sources.findFirst({
+    where: { id: cardId, user_id: userId, deleted_at: null },
+    select: { id: true, stripe_source_id: true },
+  });
+  if (!card) throw new Error("Card not found");
+
+  await updateCardExpiryOnStripe(
+    card.stripe_source_id,
+    Number(expMonth),
+    Number(expYear),
+  );
+
+  await prisma.user_stripe_sources.update({
+    where: { id: cardId },
+    data: { exp_month: expMonth, exp_year: expYear, has_failed: false },
+  });
+}
+
+export async function replaceCardWithExisting(
+  oldCardId: number,
+  newCardId: number,
+  userId: number,
+): Promise<void> {
+  if (oldCardId === newCardId) throw new Error("Cannot replace a card with itself");
+
+  const [oldCard, newCard] = await Promise.all([
+    prisma.user_stripe_sources.findFirst({
+      where: { id: oldCardId, user_id: userId, deleted_at: null },
+      select: { id: true },
+    }),
+    prisma.user_stripe_sources.findFirst({
+      where: { id: newCardId, user_id: userId, deleted_at: null },
+      select: { id: true },
+    }),
+  ]);
+  if (!oldCard) throw new Error("Original card not found");
+  if (!newCard) throw new Error("Replacement card not found");
+
+  await prisma.subscription_items.updateMany({
+    where: { user_stripe_source_id: oldCardId },
+    data: { user_stripe_source_id: newCardId },
+  });
+}
+
+export async function replaceCardWithNew(
+  oldCardId: number,
+  userId: number,
+  input: CardInput,
+): Promise<CardPaymentMethod> {
+  const oldCard = await prisma.user_stripe_sources.findFirst({
+    where: { id: oldCardId, user_id: userId, deleted_at: null },
+    select: { id: true },
+  });
+  if (!oldCard) throw new Error("Original card not found");
+
+  const newCard = await createUserCard(userId, input);
+
+  await prisma.subscription_items.updateMany({
+    where: { user_stripe_source_id: oldCardId },
+    data: { user_stripe_source_id: newCard.id },
+  });
+
+  return newCard;
+}
+
+export async function removeCardFromLoyalty(cardId: number, userId: number): Promise<void> {
+  const card = await prisma.user_stripe_sources.findFirst({
+    where: { id: cardId, user_id: userId, deleted_at: null },
+    select: { id: true, is_default: true },
+  });
+  if (!card) throw new Error("Card not found");
+  if (card.is_default) throw new Error("Cannot remove default card");
+
+  const items = await prisma.subscription_items.findMany({
+    where: { user_stripe_source_id: cardId },
+    select: { subscription_id: true },
+  });
+  const subscriptionIds = Array.from(
+    new Set(
+      items
+        .map((i) => i.subscription_id)
+        .filter((id): id is bigint => id !== null),
+    ),
+  );
+
+  if (subscriptionIds.length > 0) {
+    await prisma.subscriptions.updateMany({
+      where: { id: { in: subscriptionIds } },
+      data: { is_loyalty_enabled: false },
+    });
+  }
+
+  await prisma.subscription_items.updateMany({
+    where: { user_stripe_source_id: cardId },
+    data: { user_stripe_source_id: null },
+  });
+
+  await prisma.user_stripe_sources.update({
+    where: { id: cardId },
+    data: { deleted_at: new Date() },
+  });
+}
+
 export async function deleteUserCard(cardId: number, userId: number): Promise<void> {
   const owned = await prisma.user_stripe_sources.findFirst({
     where: { id: cardId, user_id: userId, deleted_at: null },
@@ -60,67 +226,7 @@ export async function deleteUserCard(cardId: number, userId: number): Promise<vo
   });
 }
 
-const cardSelect = {
-  id: true,
-  brand: true,
-  last4: true,
-  exp_month: true,
-  exp_year: true,
-  name_on_card: true,
-  has_failed: true,
-  is_default: true,
-} as const;
-
-type CardRow = NonNullable<
-  Awaited<ReturnType<typeof prisma.user_stripe_sources.findFirst<{ select: typeof cardSelect }>>>
->;
-
-async function countActiveSubscriptionsPerCard(
-  cardIds: bigint[],
-): Promise<Map<number, number>> {
-  if (cardIds.length === 0) return new Map();
-  const rows = await prisma.subscription_items.groupBy({
-    by: ["user_stripe_source_id"],
-    where: { user_stripe_source_id: { in: cardIds }, deleted_at: null },
-    _count: { _all: true },
-  });
-  const map = new Map<number, number>();
-  for (const r of rows) {
-    if (r.user_stripe_source_id !== null) {
-      map.set(Number(r.user_stripe_source_id), r._count._all);
-    }
-  }
-  return map;
-}
-
-async function countExpiredSubscriptionsPerCard(
-  cardIds: bigint[],
-): Promise<Map<number, number>> {
-  if (cardIds.length === 0) return new Map();
-  const now = new Date();
-  const rows = await prisma.subscription_items.groupBy({
-    by: ["user_stripe_source_id"],
-    where: {
-      user_stripe_source_id: { in: cardIds },
-      deleted_at: null,
-      ends_at: { lte: now },
-    },
-    _count: { _all: true },
-  });
-  const map = new Map<number, number>();
-  for (const r of rows) {
-    if (r.user_stripe_source_id !== null) {
-      map.set(Number(r.user_stripe_source_id), r._count._all);
-    }
-  }
-  return map;
-}
-
-function toCardPaymentMethod(
-  card: CardRow,
-  activeSubscriptions: number,
-  expiredSubscriptions: number,
-): CardPaymentMethod {
+function toCardPaymentMethod(card: CardRow): CardPaymentMethod {
   return {
     id: Number(card.id),
     brand: card.brand,
@@ -130,32 +236,27 @@ function toCardPaymentMethod(
     nameOnCard: card.name_on_card,
     hasFailed: card.has_failed,
     isDefault: card.is_default,
-    status: computeCardStatus(card.has_failed, card.exp_month, card.exp_year),
-    activeSubscriptions,
-    expiredSubscriptions,
+    status: getCardStatus(card),
+    activeSubscriptions: card._count.subscription_items,
   };
 }
 
-function computeCardStatus(
-  hasFailed: boolean,
-  expMonth: string,
-  expYear: string,
-): CardStatus {
-  if (hasFailed) return "FAILED";
+const cardSelect = {
+  id: true,
+  brand: true,
+  last4: true,
+  exp_month: true,
+  exp_year: true,
+  name_on_card: true,
+  has_failed: true,
+  is_default: true,
+  _count: {
+    select: {
+      subscription_items: { where: { deleted_at: null } },
+    },
+  },
+} as const;
 
-  const expiresAt = endOfExpiryMonth(expMonth, expYear);
-  const now = new Date();
-  if (now > expiresAt) return "EXPIRED";
-
-  const oneMonthFromNow = new Date(now);
-  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
-  if (expiresAt <= oneMonthFromNow) return "EXPIRING_SOON";
-
-  return "GOOD";
-}
-
-function endOfExpiryMonth(expMonth: string, expYear: string): Date {
-  const month = Number(expMonth);
-  const year = Number(expYear);
-  return new Date(year, month, 1);
-}
+type CardRow = NonNullable<
+  Awaited<ReturnType<typeof prisma.user_stripe_sources.findFirst<{ select: typeof cardSelect }>>>
+>;

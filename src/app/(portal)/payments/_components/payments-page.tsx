@@ -6,6 +6,7 @@ import EmptyState from "@/components/ui/empty-state";
 import type { PaymentMethods } from "@/lib/actions/payment.actions";
 import Tabs, { type PaymentTab } from "./tabs";
 import CardList from "./card/card-list";
+import CardDialog from "./card/add/card-dialog";
 
 interface PaymentsPageProps {
   methods: PaymentMethods;
@@ -13,6 +14,11 @@ interface PaymentsPageProps {
 
 export default function PaymentsPage({ methods }: PaymentsPageProps) {
   const [tab, setTab] = useState<PaymentTab>("card");
+  const [addCardOpen, setAddCardOpen] = useState(false);
+
+  const handleAddPaymentMethod = () => {
+    if (tab === "card") setAddCardOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -36,6 +42,7 @@ export default function PaymentsPage({ methods }: PaymentsPageProps) {
 
         <button
           type="button"
+          onClick={handleAddPaymentMethod}
           className="h-10 px-5 rounded-pill bg-brand-gradient text-white text-sm font-semibold shadow-[0px_6px_18px_0px_rgba(55,146,222,0.35)] hover:opacity-95 cursor-pointer flex items-center gap-2"
         >
           <span className="text-base leading-none">+</span>
@@ -63,6 +70,8 @@ export default function PaymentsPage({ methods }: PaymentsPageProps) {
         The Default payment method is charged for all new filter renewals. Update expired cards
         to avoid service interruptions.
       </div>
+
+      <CardDialog open={addCardOpen} onClose={() => setAddCardOpen(false)} />
     </div>
   );
 }

@@ -10,7 +10,7 @@ import type { UserAddressView } from "@/lib/types/address";
 import type { CountryOption } from "@/lib/types/reference";
 import AddressCard from "./address-card";
 import AddressFormDialog, { type AddressDialogMode } from "./address-form-dialog";
-import RemoveDefaultDialog from "./remove-default-dialog";
+import DefaultMessageDialog from "@/components/shared/default-message-dialog";
 
 interface AddressListProps {
   addresses: UserAddressView[];
@@ -145,9 +145,11 @@ export default function AddressList({ addresses, countries }: AddressListProps) 
         />
       )}
 
-      <RemoveDefaultDialog
+      <DefaultMessageDialog
         open={defaultBlockOpen}
         onClose={() => setDefaultBlockOpen(false)}
+        title="Cannot remove default address"
+        message="Please set another address as your default before removing this one."
       />
     </div>
   );

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "react-toastify";
-import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
+import DialogHeader from "@/components/ui/dialog-header";
+import Modal from "@/components/ui/modal";
 import {
   getStatesForCountry,
   migrateSubscriptions,
@@ -181,13 +182,10 @@ export default function AddressFormDialog({
   const headerTitle = isRemove ? "Remove Address" : isEdit ? "Edit Address" : "Add New Address";
 
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50">
-      <DialogBackdrop className="fixed inset-0 bg-text-heading/50 backdrop-blur-[2px]" />
-      <div className="fixed inset-0 flex items-center justify-center p-4 overflow-y-auto">
-        <DialogPanel className="relative bg-white rounded-3xl shadow-[0px_0px_0px_1px_rgba(55,146,222,0.08),0px_32px_80px_-8px_rgba(8,20,40,0.5)] w-full max-w-[560px]">
-          <FormHeader title={headerTitle} onClose={onClose} />
+    <Modal open={open} onClose={onClose} width="max-w-[560px]" showClose={false}>
+      <DialogHeader iconSrc="/assets/icons/pin.svg" title={headerTitle} onClose={onClose} />
 
-          <div className="px-7 py-6 flex flex-col gap-3.5">
+      <div className="px-7 py-6 flex flex-col gap-3.5">
             {requireMigration && (
               <div className="flex flex-col gap-3">
                 <div className="rounded-[8px] bg-[#eef6fc] px-3 py-2.5">
@@ -330,32 +328,7 @@ export default function AddressFormDialog({
               {submitLabel}
             </button>
           </div>
-        </DialogPanel>
-      </div>
-    </Dialog>
-  );
-}
-
-function FormHeader({ title, onClose }: { title: string; onClose: () => void }) {
-  return (
-    <div className="border-b border-border-subtle/50">
-      <div className="flex items-center justify-between gap-3 px-7 py-3">
-        <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-[#eef6fc] flex items-center justify-center">
-            <img src="/assets/icons/pin.svg" alt="" className="w-7 h-7 p-1" />
-          </span>
-          <h3 className="font-bold text-[17px] text-text-heading leading-tight">{title}</h3>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-overlay cursor-pointer"
-        >
-          <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
