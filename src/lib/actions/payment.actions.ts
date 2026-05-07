@@ -13,41 +13,66 @@ import {
   setDefaultUserCard,
   updateUserCardExpiry,
 } from "@/lib/services/card-service";
+import {
+  createUserBank,
+  deleteUserBank,
+  getAchSessionContextForUser,
+  isUserAchEligible,
+  listUserBanks,
+  removeBankFromLoyalty,
+  replaceBankWithExistingBank,
+  replaceBankWithExistingCard,
+  replaceBankWithNewBank,
+  setDefaultUserBank,
+} from "@/lib/services/bank-service";
 import type {
   CardFormContext,
   CardInput,
   CardPaymentMethod,
 } from "@/lib/types/card";
+import type {
+  AchSessionContext,
+  BankInput,
+  BankPaymentMethod,
+} from "@/lib/types/bank";
 
 export interface PaymentMethods {
   cards: CardPaymentMethod[];
+  banks: BankPaymentMethod[];
 }
 
 export async function getPaymentMethods(): Promise<PaymentMethods> {
   const { userId } = await getAuth();
-  const cards = await listUserCards(userId);
-  return { cards };
+  const [cards, banks] = await Promise.all([
+    listUserCards(userId),
+    listUserBanks(userId),
+  ]);
+  return { cards, banks };
 }
 
-export async function setDefaultPaymentMethod(input: {
-  type: "card";
-  id: number;
-}): Promise<void> {
+export async function setDefaultPaymentMethod(input:
+  | { type: "card"; id: number }
+  | { type: "bank"; id: number }
+): Promise<void> {
   const { userId } = await getAuth();
   if (input.type === "card") {
     await setDefaultUserCard(input.id, userId);
+  } else {
+    await setDefaultUserBank(input.id, userId);
   }
   revalidatePath("/payments");
   revalidatePath("/account");
 }
 
-export async function removePaymentMethod(input: {
-  type: "card";
-  id: number;
-}): Promise<void> {
+export async function removePaymentMethod(input:
+  | { type: "card"; id: number }
+  | { type: "bank"; id: number }
+): Promise<void> {
   const { userId } = await getAuth();
   if (input.type === "card") {
     await deleteUserCard(input.id, userId);
+  } else {
+    await deleteUserBank(input.id, userId);
   }
   revalidatePath("/payments");
   revalidatePath("/account");
@@ -98,6 +123,65 @@ export async function replaceCardWithNewAction(input: {
   revalidatePath("/payments");
   revalidatePath("/account");
   return card;
+}
+
+export async function addBankPaymentMethod(input: BankInput): Promise<BankPaymentMethod> {
+  const { userId } = await getAuth();
+  if (!(await isUserAchEligible(userId))) {
+    throw new Error("ACH is only available for US users");
+  }
+  const bank = await createUserBank(userId, input);
+  revalidatePath("/payments");
+  revalidatePath("/account");
+  return bank;
+}
+
+export async function removeBankFromLoyaltyAction(input: { bankId: number }): Promise<void> {
+  const { userId } = await getAuth();
+  await removeBankFromLoyalty(input.bankId, userId);
+  revalidatePath("/payments");
+  revalidatePath("/account");
+}
+
+export async function replaceBankWithExistingPaymentMethodAction(input:
+  | { oldBankId: number; targetType: "card"; newId: number }
+  | { oldBankId: number; targetType: "bank"; newId: number }
+): Promise<void> {
+  const { userId } = await getAuth();
+  if (input.targetType === "card") {
+    await replaceBankWithExistingCard(input.oldBankId, input.newId, userId);
+  } else {
+    await replaceBankWithExistingBank(input.oldBankId, input.newId, userId);
+  }
+  revalidatePath("/payments");
+  revalidatePath("/account");
+}
+
+export async function replaceBankWithNewBankAction(input: {
+  oldBankId: number;
+  bank: BankInput;
+}): Promise<BankPaymentMethod> {
+  const { userId } = await getAuth();
+  if (!(await isUserAchEligible(userId))) {
+    throw new Error("ACH is only available for US users");
+  }
+  const bank = await replaceBankWithNewBank(input.oldBankId, userId, input.bank);
+  revalidatePath("/payments");
+  revalidatePath("/account");
+  return bank;
+}
+
+export async function getAchEligibility(): Promise<boolean> {
+  const { userId } = await getAuth();
+  return isUserAchEligible(userId);
+}
+
+export async function getAchSessionContext(): Promise<AchSessionContext> {
+  const { userId } = await getAuth();
+  if (!(await isUserAchEligible(userId))) {
+    throw new Error("ACH is only available for US users");
+  }
+  return getAchSessionContextForUser(userId);
 }
 
 export async function getCardFormContext(): Promise<CardFormContext> {

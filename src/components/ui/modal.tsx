@@ -30,7 +30,7 @@ export default function Modal({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:bg-surface-overlay cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center rounded-full text-text-muted bg-black/10 hover:bg-black/5 cursor-pointer"
             >
               <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
             </button>

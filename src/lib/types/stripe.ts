@@ -6,6 +6,11 @@ export interface CreateCustomerInput {
   email: string;
 }
 
+export interface CreateBareCustomerInput {
+  name: string;
+  email: string;
+}
+
 export interface ChargeCardInput {
   customerId: string;
   paymentMethodId: string;

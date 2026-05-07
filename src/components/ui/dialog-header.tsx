@@ -24,7 +24,7 @@ export default function DialogHeader({ iconSrc, title, subtitle, onClose }: Dial
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-surface-overlay cursor-pointer"
+          className="w-7 h-7 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/5 cursor-pointer"
         >
           <img src="/assets/icons/close.svg" alt="" className="w-4 h-4" />
         </button>
