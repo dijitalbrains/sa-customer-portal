@@ -170,6 +170,7 @@ async function toRenewalItem(
       ? "Pending Install"
       : formatShortDate(subscription.isLoyaltyEnabled ? item.ends_at : item.upcoming_reminder),
     shipTo: formatAddress(item.user_addresses),
+    userAddressId: item.user_address_id ? Number(item.user_address_id) : null,
     payment: getPaymentMethod(item),
     quantity: item.quantity,
     linkedProductName: linked?.name ?? null,
@@ -250,4 +251,35 @@ function buildImageUrl(filename: string | null): string {
   if (!filename) return "/assets/images/product-placeholder.svg";
   const base = process.env.LANDING_URL ?? "";
   return `${base}/images/${filename}`;
+}
+
+
+export async function updateSubscriptionItemAddress(
+  itemId: number,
+  userId: number,
+  addressId: number,
+): Promise<{ subscriptionId: number }> {
+  const item = await prisma.subscription_items.findFirst({
+    where: {
+      id: itemId,
+      subscriptions: { is: { user_id: userId } },
+    },
+    select: { id: true, subscription_id: true },
+  });
+  if (!item || item.subscription_id === null) {
+    throw new Error("Subscription item not found");
+  }
+
+  const address = await prisma.user_addresses.findFirst({
+    where: { id: addressId, user_id: userId, deleted_at: null },
+    select: { id: true },
+  });
+  if (!address) throw new Error("Address not found");
+
+  await prisma.subscription_items.update({
+    where: { id: itemId },
+    data: { user_address_id: addressId },
+  });
+
+  return { subscriptionId: Number(item.subscription_id) };
 }

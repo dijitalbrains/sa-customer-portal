@@ -26,6 +26,7 @@ interface AddressFormDialogProps {
   address: UserAddressView | null;
   allAddresses: UserAddressView[];
   mode?: AddressDialogMode;
+  onCreated?: (addressId: number) => void | Promise<void>;
 }
 
 interface FormState {
@@ -50,13 +51,15 @@ export default function AddressFormDialog({
   address,
   allAddresses,
   mode = "edit",
+  onCreated,
 }: AddressFormDialogProps) {
   const isEdit = address !== null;
-  const requireMigration = address !== null && address.activeSubscriptions > 0;
   const isRemove = mode === "remove";
+  const requireMigration = address !== null && address.activeSubscriptions > 0 && isRemove;
+  const isEditWithSubs = isEdit && address.activeSubscriptions > 0 && !isRemove;
 
   const [picker, setPicker] = useState<string>(requireMigration ? NEW_ADDRESS_VALUE : "");
-  const [form, setForm] = useState<FormState>(() => initialForm(address));
+  const [form, setForm] = useState<FormState>(() => initialForm(address, requireMigration));
   const [states, setStates] = useState<StateOption[]>([]);
   const [loadingStates, startLoadStates] = useTransition();
   const [saving, startSaving] = useTransition();
@@ -64,7 +67,7 @@ export default function AddressFormDialog({
 
   useEffect(() => {
     if (open) {
-      setForm(initialForm(address));
+      setForm(initialForm(address, requireMigration));
       setPicker(requireMigration ? NEW_ADDRESS_VALUE : "");
       setError(null);
     }
@@ -153,8 +156,12 @@ export default function AddressFormDialog({
           await updateAddress(address.id, payload);
           toast.success("Address updated");
         } else {
-          await saveAddress(payload);
-          toast.success("Address added");
+          const newId = await saveAddress(payload);
+          if (onCreated) {
+            await onCreated(newId);
+          } else {
+            toast.success("Address added");
+          }
         }
         onClose();
       } catch (e) {
@@ -186,6 +193,16 @@ export default function AddressFormDialog({
       <DialogHeader iconSrc="/assets/icons/pin.svg" title={headerTitle} onClose={onClose} />
 
       <div className="px-7 py-6 flex flex-col gap-3.5">
+            {isEditWithSubs && address && (
+              <div className="rounded-[8px] bg-[#eef6fc] px-3 py-2.5">
+                <p className="text-[12px] text-text-muted">
+                  This address is linked to {address.activeSubscriptions} active subscription
+                  {address.activeSubscriptions === 1 ? "" : "s"}. Updating this address will
+                  apply the changes to all of them.
+                </p>
+              </div>
+            )}
+
             {requireMigration && (
               <div className="flex flex-col gap-3">
                 <div className="rounded-[8px] bg-[#eef6fc] px-3 py-2.5">
@@ -332,9 +349,9 @@ export default function AddressFormDialog({
   );
 }
 
-function initialForm(address: UserAddressView | null): FormState {
+function initialForm(address: UserAddressView | null, blankForMigration: boolean): FormState {
   if (!address) return emptyForm();
-  if (address.activeSubscriptions > 0) return emptyForm();
+  if (blankForMigration) return emptyForm();
   return {
     countryId: address.countryId,
     stateId: address.stateId,

@@ -81,6 +81,7 @@ export interface RenewalItem {
   upcomingReminder: string | null;
   nextReminderDate: string;
   shipTo: string;
+  userAddressId: number | null;
   payment: PaymentMethod;
   quantity: number;
   linkedProductName: string | null;

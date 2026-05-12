@@ -1,6 +1,7 @@
 import Link from "next/link";
 import PaymentMethod from "@/components/shared/payment-method";
 import type { RenewalItem } from "@/lib/types/subscription";
+import ShipToButton from "@/components/shared/addresses/change-shipping-address/ship-to-button";
 
 const LABEL_CLASS = "font-semibold text-[10px] uppercase text-black leading-none";
 const VALUE_CLASS = "font-normal text-xs text-black leading-tight";
@@ -14,16 +15,20 @@ export default function RenewalSettings({ item }: { item: RenewalItem }) {
 
   return (
     <div className="flex flex-wrap gap-5 mt-3">
-      <Link
-        href={`/edit-address/${item.id}`}
-        className={`${COLUMN_CLASS} flex gap-[18px] items-center cursor-pointer hover:opacity-80 transition-opacity`}
-      >
-        <div className="flex-1 min-w-0 flex flex-col gap-1 items-start">
-          <span className={LABEL_CLASS}>Ship To</span>
-          <span className={VALUE_CLASS}>{item.shipTo}</span>
-        </div>
-        {CHEVRON}
-      </Link>
+      <div className={COLUMN_CLASS}>
+        {item.userAddressId !== null ? (
+          <ShipToButton
+            subscriptionItemId={item.id}
+            currentAddressId={item.userAddressId}
+            shipTo={item.shipTo}
+          />
+        ) : (
+          <div className="flex flex-col gap-1 items-start">
+            <span className={LABEL_CLASS}>Ship To</span>
+            <span className={VALUE_CLASS}>{item.shipTo}</span>
+          </div>
+        )}
+      </div>
 
       <Link
         href={`/edit-payment/${item.id}`}

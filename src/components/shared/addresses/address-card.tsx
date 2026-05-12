@@ -27,7 +27,7 @@ export default function AddressCard({
     >
       <div
         className={`relative px-4 pt-4 pb-3 ${
-          isDefault ? "bg-brand-gradient" : "bg-white"
+          isDefault ? "bg-brand-gradient" : "bg-surface-overlay"
         }`}
       >
         <div className="flex items-center gap-3">

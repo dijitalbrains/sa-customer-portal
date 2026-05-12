@@ -13,6 +13,7 @@ interface BankItemProps {
 export default function BankItem({ bank, onRemove, onSetDefault }: BankItemProps) {
   const isDefault = bank.isDefault;
   const isFailed = bank.status === "FAILED";
+  const isDarkHeader = isFailed || isDefault;
 
   const containerClasses = [
     "h-full rounded-[16px] overflow-hidden flex flex-col shadow-[0px_4px_20px_0px_#00305214] border",
@@ -26,7 +27,11 @@ export default function BankItem({ bank, onRemove, onSetDefault }: BankItemProps
 
   const headerClasses = [
     "px-4 py-3 flex items-center justify-between gap-2",
-    isFailed ? "bg-gradient-to-br from-[#E84B4B] to-[#A81E1E]" : "bg-[#eef6fc]",
+    isFailed
+      ? "bg-gradient-to-br from-[#E84B4B] to-[#A81E1E]"
+      : isDefault
+        ? "bg-brand-primary"
+        : "bg-[#eef6fc]",
   ].join(" ");
 
   return (
@@ -36,7 +41,9 @@ export default function BankItem({ bank, onRemove, onSetDefault }: BankItemProps
           <Avatar
             initials={getInitials(bank.bankName ?? "Bank")}
             size={36}
-            bgClass={isFailed ? "bg-[#791F1F]" : "bg-brand-primary"}
+            bgClass={
+              isFailed ? "bg-[#791F1F]" : isDefault ? "bg-white/20" : "bg-brand-primary"
+            }
             textClass="text-white"
           />
           <div className="flex flex-col leading-tight min-w-0">
@@ -47,7 +54,7 @@ export default function BankItem({ bank, onRemove, onSetDefault }: BankItemProps
             )}
             <span
               className={`text-[13px] font-bold truncate ${
-                isFailed ? "text-white" : "text-text-heading"
+                isDarkHeader ? "text-white" : "text-text-heading"
               }`}
             >
               {(bank.bankName ?? "Bank").toUpperCase()} ****{bank.last4 ?? "****"}
