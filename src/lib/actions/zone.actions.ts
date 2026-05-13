@@ -2,8 +2,8 @@
 
 import { getAuth } from "@/lib/auth";
 import { listStatesByCountry } from "@/lib/services/state-service";
-import { getEditZoneData } from "@/lib/services/renewal-service";
 import {
+  getEditZoneData,
   getZoneChangePreview,
   updateSubscriptionZone,
 } from "@/lib/services/zone-service";

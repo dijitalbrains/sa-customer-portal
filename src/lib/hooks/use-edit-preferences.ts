@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { getShippingPriceForItem } from "@/lib/actions/preferences.actions";
+import { formatLineLabel } from "@/lib/services/pricing-service";
+import { addInterval } from "@/lib/utils/date";
+import { round2 } from "@/lib/utils/currency";
 import type { PriceLine, RenewalItem } from "@/lib/types/subscription";
 import type { ValidityType } from "@/lib/types/preferences";
 
@@ -92,14 +95,6 @@ function initialState(item: RenewalItem): PreferencesState {
   };
 }
 
-function addInterval(date: Date, value: number, unit: ValidityType): Date {
-  const out = new Date(date);
-  if (value <= 0) return out;
-  if (unit === "MONTHS") out.setMonth(out.getMonth() + value);
-  else out.setDate(out.getDate() + value * 7);
-  return out;
-}
-
 function computeLivePricing(item: RenewalItem, quantity: number, shipping: number) {
   const baseQty = Math.max(1, item.quantity);
   const productUnit = (item.pricingLines[0]?.amount ?? 0) / baseQty;
@@ -107,7 +102,7 @@ function computeLivePricing(item: RenewalItem, quantity: number, shipping: numbe
 
   const lines: PriceLine[] = [
     {
-      label: item.productName,
+      label: formatLineLabel(item.productName, quantity),
       amount: round2(productUnit * quantity),
       originalAmount: productOriginalUnit !== null ? round2(productOriginalUnit * quantity) : null,
     },
@@ -122,7 +117,7 @@ function computeLivePricing(item: RenewalItem, quantity: number, shipping: numbe
 
     linkedAmount = round2(item.linkedProductPrice * linkedQty);
     lines.push({
-      label: `Zone ${item.subscription.zone} (${item.linkedProductName})`,
+      label: formatLineLabel(`Zone ${item.subscription.zone} (${item.linkedProductName})`, linkedQty),
       amount: linkedAmount,
       originalAmount:
         linkedOriginalUnit !== null ? round2(linkedOriginalUnit * linkedQty) : null,
@@ -140,8 +135,4 @@ function computeLivePricing(item: RenewalItem, quantity: number, shipping: numbe
 function unitOf(amount: number | null | undefined, quantity: number): number | null {
   if (amount == null || quantity <= 0) return null;
   return amount / quantity;
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
 }

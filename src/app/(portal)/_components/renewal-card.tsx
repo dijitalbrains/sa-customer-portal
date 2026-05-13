@@ -33,13 +33,7 @@ export default function RenewalCard({
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-          <span
-            className={`text-[13px] font-bold truncate ${
-              isError ? "text-status-error-text" : "text-text-primary"
-            }`}
-          >
-            {productName}
-          </span>
+          <span className={`text-[13px] font-bold truncate ${textColor}`}>{productName}</span>
           {nickname && (
             <span className={`text-[12px] font-normal ${mutedColor}`}>({nickname})</span>
           )}
@@ -67,34 +61,44 @@ export default function RenewalCard({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-        <div className="flex flex-col gap-1">
-          <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>
-            Next subscription
-          </span>
-          <span className={`text-[12px] font-normal ${textColor}`}>{nextDate}</span>
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>
-            Ship To
-          </span>
-          <span className={`text-[12px] font-normal ${textColor}`}>{shipTo}</span>
-        </div>
-        <div className="flex flex-col gap-1 sm:items-end sm:text-right">
-          <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>
-            Loyalty Program
-          </span>
-          <div className={`text-[12px] font-normal ${textColor}`}>
-            {isLoyaltyEnabled ? (
-              <span>Yes</span>
-            ) : productType !== "PRESET_FILTER" ? (
-              <div>
-                <p className="text-brand-primary cursor-pointer">Join the loyalty program.</p>
-                <p>Cancel at anytime.</p>
-              </div>
-            ) : null}
-          </div>
-        </div>
+        <StatColumn label="Next subscription" textColor={textColor}>
+          {nextDate}
+        </StatColumn>
+        <StatColumn label="Ship To" textColor={textColor}>
+          {shipTo}
+        </StatColumn>
+        <StatColumn label="Loyalty Program" textColor={textColor} align="right">
+          {isLoyaltyEnabled ? (
+            <span>Yes</span>
+          ) : productType !== "PRESET_FILTER" ? (
+            <div>
+              <p className="text-brand-primary cursor-pointer">Join the loyalty program.</p>
+              <p>Cancel at anytime.</p>
+            </div>
+          ) : null}
+        </StatColumn>
       </div>
     </Link>
+  );
+}
+
+function StatColumn({
+  label,
+  children,
+  align,
+  textColor,
+}: {
+  label: string;
+  children: React.ReactNode;
+  align?: "right";
+  textColor: string;
+}) {
+  return (
+    <div className={`flex flex-col gap-1 ${align === "right" ? "sm:items-end sm:text-right" : ""}`}>
+      <span className={`text-[10px] font-semibold uppercase tracking-wide ${textColor}`}>
+        {label}
+      </span>
+      <div className={`text-[12px] font-normal ${textColor}`}>{children}</div>
+    </div>
   );
 }

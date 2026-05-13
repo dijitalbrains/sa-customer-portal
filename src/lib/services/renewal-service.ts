@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatShortDate, formatShortDateTime, getMonthsRemaining } from "@/lib/utils/date";
 import { formatAddress } from "@/lib/utils/address";
@@ -9,19 +10,61 @@ import {
   getRemainingMonthsText,
 } from "@/lib/utils/subscription";
 import { getPaymentMethod } from "@/lib/utils/payment";
-import { listAvailableCountries } from "@/lib/services/country-service";
+import { calculateItemSubtotal } from "@/lib/services/pricing-service";
 import type {
   RenewalOrder,
   RenewalListGroup,
   RenewalListItem,
 } from "@/lib/types/subscription";
-import type {
-  EditZoneData,
-  ProductRef,
-  SubscriptionSnapshot,
-} from "@/lib/types/zone";
 
-const P1_FILTER_KEY = "p1-filter";
+const productLite = {
+  select: { id: true, key: true, name: true, type: true, price: true },
+} satisfies Prisma.productsDefaultArgs;
+
+const itemSelect = {
+  id: true,
+  quantity: true,
+  starts_at: true,
+  ends_at: true,
+  upcoming_reminder: true,
+  validity_type: true,
+  validity_value: true,
+  linked_product_quantity: true,
+  products_subscription_items_product_idToproducts: productLite,
+  products_subscription_items_linked_product_idToproducts: productLite,
+  user_addresses: {
+    select: {
+      street: true,
+      apartment: true,
+      city: true,
+      zip: true,
+      states: { select: { abbr: true } },
+    },
+  },
+  user_stripe_sources: {
+    select: {
+      brand: true,
+      last4: true,
+      has_failed: true,
+      exp_month: true,
+      exp_year: true,
+    },
+  },
+  user_bank_accounts: {
+    select: { bank_name: true, last4: true },
+  },
+} satisfies Prisma.subscription_itemsSelect;
+
+const subscriptionSelect = {
+  id: true,
+  nickname: true,
+  is_loyalty_enabled: true,
+  products: { select: { name: true, technology: true } },
+  subscription_items: {
+    where: { deleted_at: null },
+    select: itemSelect,
+  },
+} satisfies Prisma.subscriptionsSelect;
 
 type RawOrder = Awaited<ReturnType<typeof fetchUserOrders>>[number];
 type RawSubscription = RawOrder["subscriptions"][number];
@@ -32,94 +75,6 @@ export async function getRenewals(userId: number): Promise<RenewalOrder[]> {
   return orders.map(toRenewalOrder);
 }
 
-export async function getEditZoneData(
-  subscriptionId: number,
-  userId: number,
-): Promise<EditZoneData> {
-  const sub = await prisma.subscriptions.findFirst({
-    where: { id: subscriptionId, user_id: userId, deleted_at: null },
-    select: {
-      id: true,
-      zone: true,
-      country_id: true,
-      state_id: true,
-      city: true,
-      zip: true,
-      household_size: true,
-      is_well_water: true,
-      has_filtration_system: true,
-      has_micron_system: true,
-      subscription_items: {
-        where: { deleted_at: null },
-        select: {
-          id: true,
-          quantity: true,
-          validity_type: true,
-          validity_value: true,
-          products_subscription_items_product_idToproducts: {
-            select: { id: true, key: true, name: true, price: true },
-          },
-          products_subscription_items_linked_product_idToproducts: {
-            select: { id: true, key: true, name: true, price: true },
-          },
-        },
-      },
-    },
-  });
-  if (!sub) throw new Error("Subscription not found");
-
-  const subscription: SubscriptionSnapshot = {
-    id: Number(sub.id),
-    zone: sub.zone ?? 0,
-    countryId: sub.country_id ?? null,
-    stateId: sub.state_id ?? null,
-    city: sub.city ?? "",
-    zip: sub.zip ?? "",
-    householdSize: sub.household_size ?? 0,
-    isWellWater: sub.is_well_water,
-    hasFiltrationSystem: sub.has_filtration_system,
-    hasMicronSystem: sub.has_micron_system,
-    items: sub.subscription_items.map((item) => ({
-      id: Number(item.id),
-      product: toProductRef(item.products_subscription_items_product_idToproducts),
-      quantity: item.quantity ?? 1,
-      validityType: (item.validity_type ?? "MONTHS") as "MONTHS" | "WEEKS",
-      validityValue: item.validity_value ?? 0,
-      linkedProduct: item.products_subscription_items_linked_product_idToproducts
-        ? toProductRef(item.products_subscription_items_linked_product_idToproducts)
-        : null,
-    })),
-  };
-
-  const [p1Product, countries] = await Promise.all([
-    prisma.products.findFirst({
-      where: { key: P1_FILTER_KEY },
-      select: { id: true, key: true, name: true, price: true },
-    }),
-    listAvailableCountries(),
-  ]);
-
-  return {
-    subscription,
-    p1Filter: p1Product ? toProductRef(p1Product) : null,
-    countries,
-  };
-}
-
-function toProductRef(product: {
-  id: number;
-  key: string;
-  name: string;
-  price: number | null;
-}): ProductRef {
-  return {
-    id: product.id,
-    key: product.key,
-    name: product.name,
-    price: product.price ?? 0,
-  };
-}
-
 async function fetchUserOrders(userId: number) {
   return prisma.orders.findMany({
     where: {
@@ -127,22 +82,11 @@ async function fetchUserOrders(userId: number) {
       deleted_at: null,
       subscriptions: { some: { deleted_at: null } },
     },
-    include: {
+    select: {
+      created_at: true,
       subscriptions: {
         where: { deleted_at: null },
-        include: {
-          products: true,
-          subscription_items: {
-            where: { deleted_at: null },
-            include: {
-              products_subscription_items_product_idToproducts: true,
-              products_subscription_items_linked_product_idToproducts: true,
-              user_addresses: { include: { states: true } },
-              user_stripe_sources: true,
-              user_bank_accounts: true,
-            },
-          },
-        },
+        select: subscriptionSelect,
       },
     },
     orderBy: { created_at: "desc" },
@@ -190,7 +134,7 @@ function toListItem(item: RawSubscriptionItem, sub: RawSubscription): RenewalLis
     subscriptionId: Number(sub.id),
     productName: product.name,
     nickname: sub.nickname || "",
-    price: formatPrice(calcSubtotal(item)),
+    price: formatPrice(calculateSubtotal(item)),
     status: isExpired ? "expired" : "active",
     frequency: getValidityTypeText(item.validity_value, item.validity_type),
     remaining:
@@ -208,13 +152,14 @@ function toListItem(item: RawSubscriptionItem, sub: RawSubscription): RenewalLis
   };
 }
 
-function calcSubtotal(item: RawSubscriptionItem): number {
+function calculateSubtotal(item: RawSubscriptionItem): number {
   const product = item.products_subscription_items_product_idToproducts;
   const linkedProduct = item.products_subscription_items_linked_product_idToproducts;
 
-  const main = (product.price ?? 0) * item.quantity;
-  const linkedQty = (item.linked_product_quantity ?? 1) * item.quantity;
-  const linked = linkedProduct ? (linkedProduct.price ?? 0) * linkedQty : 0;
-
-  return Math.round((main + linked) * 100) / 100;
+  return calculateItemSubtotal({
+    quantity: item.quantity,
+    linkedQuantity: item.linked_product_quantity ?? null,
+    productPrice: product.price ?? 0,
+    linkedPrice: linkedProduct ? (linkedProduct.price ?? 0) : null,
+  });
 }

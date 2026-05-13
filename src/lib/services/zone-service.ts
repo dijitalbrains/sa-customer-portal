@@ -2,30 +2,24 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { logActivity } from "@/lib/services/activity-service";
+import { listAvailableCountries } from "@/lib/services/country-service";
 import {
   getLinkedProductKey,
   getRenewalFilterKey,
 } from "@/lib/services/linked-product-service";
 import { processFallback } from "@/lib/services/territory-service";
+import { addMonths } from "@/lib/utils/date";
 import type {
+  EditZoneData,
   ProductRef,
+  SubscriptionSnapshot,
   ZoneChangesResult,
   ZoneFormInput,
+  ZoneSubscriptionData,
 } from "@/lib/types/zone";
 
 const P1_FILTER_KEY = "p1-filter";
 const SHOWER_FILTER_KEY = "shower-filter";
-
-export interface ZoneSubscriptionData {
-  countryId: number;
-  stateId: number | null;
-  city: string;
-  zip: string;
-  householdSize: number;
-  isWellWater: boolean;
-  hasFiltrationSystem: boolean;
-  hasMicronSystem: boolean;
-}
 
 export async function getZone(subscriptionData: ZoneSubscriptionData): Promise<number> {
   if (subscriptionData.hasMicronSystem) return 0;
@@ -41,6 +35,94 @@ export async function getZone(subscriptionData: ZoneSubscriptionData): Promise<n
     "Zone",
   );
   return zoneRow ? zoneRow.zone : -1;
+}
+
+export async function getEditZoneData(
+  subscriptionId: number,
+  userId: number,
+): Promise<EditZoneData> {
+  const sub = await prisma.subscriptions.findFirst({
+    where: { id: subscriptionId, user_id: userId, deleted_at: null },
+    select: {
+      id: true,
+      zone: true,
+      country_id: true,
+      state_id: true,
+      city: true,
+      zip: true,
+      household_size: true,
+      is_well_water: true,
+      has_filtration_system: true,
+      has_micron_system: true,
+      subscription_items: {
+        where: { deleted_at: null },
+        select: {
+          id: true,
+          quantity: true,
+          validity_type: true,
+          validity_value: true,
+          products_subscription_items_product_idToproducts: {
+            select: { id: true, key: true, name: true, price: true },
+          },
+          products_subscription_items_linked_product_idToproducts: {
+            select: { id: true, key: true, name: true, price: true },
+          },
+        },
+      },
+    },
+  });
+  if (!sub) throw new Error("Subscription not found");
+
+  const subscription: SubscriptionSnapshot = {
+    id: Number(sub.id),
+    zone: sub.zone ?? 0,
+    countryId: sub.country_id ?? null,
+    stateId: sub.state_id ?? null,
+    city: sub.city ?? "",
+    zip: sub.zip ?? "",
+    householdSize: sub.household_size ?? 0,
+    isWellWater: sub.is_well_water,
+    hasFiltrationSystem: sub.has_filtration_system,
+    hasMicronSystem: sub.has_micron_system,
+    items: sub.subscription_items.map((item) => ({
+      id: Number(item.id),
+      product: toProductRef(item.products_subscription_items_product_idToproducts),
+      quantity: item.quantity ?? 1,
+      validityType: (item.validity_type ?? "MONTHS") as "MONTHS" | "WEEKS",
+      validityValue: item.validity_value ?? 0,
+      linkedProduct: item.products_subscription_items_linked_product_idToproducts
+        ? toProductRef(item.products_subscription_items_linked_product_idToproducts)
+        : null,
+    })),
+  };
+
+  const [p1Product, countries] = await Promise.all([
+    prisma.products.findFirst({
+      where: { key: P1_FILTER_KEY },
+      select: { id: true, key: true, name: true, price: true },
+    }),
+    listAvailableCountries(),
+  ]);
+
+  return {
+    subscription,
+    p1Filter: p1Product ? toProductRef(p1Product) : null,
+    countries,
+  };
+}
+
+function toProductRef(product: {
+  id: number;
+  key: string;
+  name: string;
+  price: number | null;
+}): ProductRef {
+  return {
+    id: product.id,
+    key: product.key,
+    name: product.name,
+    price: product.price ?? 0,
+  };
 }
 
 export async function getZoneChangePreview(input: ZoneFormInput): Promise<ZoneChangesResult> {
@@ -102,55 +184,17 @@ export async function updateSubscriptionZone(input: UpdateSubscriptionZoneInput)
   const subscription = await loadSubscription(subscriptionId);
   if (!subscription) throw new Error("Subscription not found");
 
-  await prisma.subscriptions.update({
-    where: { id: subscriptionId },
-    data: {
-      country_id: subscriptionData.countryId,
-      state_id: subscriptionData.stateId ?? null,
-      city: subscriptionData.city,
-      zip: subscriptionData.zip,
-      household_size: subscriptionData.householdSize,
-      is_well_water: subscriptionData.isWellWater,
-      has_filtration_system: subscriptionData.isWellWater
-        ? subscriptionData.hasFiltrationSystem
-        : null,
-      has_micron_system: subscriptionData.hasMicronSystem,
-    },
-  });
+  await updateSubscription(subscriptionId, subscriptionData);
 
   if (subscription.zone === newZone) {
-    revalidatePath(`/detail/${subscriptionId}`);
-    revalidatePath("/");
+    revalidateZonePaths(subscriptionId);
     return;
   }
 
   if (subscription.products.key === SHOWER_FILTER_KEY) {
-    await prisma.subscriptions.update({
-      where: { id: subscriptionId },
-      data: { zone: newZone },
-    });
-
-    const subscriptionItem = await prisma.subscription_items.findFirst({
-      where: { subscription_id: subscriptionId, deleted_at: null },
-      select: { id: true, ends_at: true },
-    });
-    if (subscriptionItem) {
-      await prisma.subscription_items.update({
-        where: { id: subscriptionItem.id },
-        data: { ends_at: subscriptionItem.ends_at },
-      });
-    }
-
-    await logActivity({
-      userId,
-      actorId,
-      key: "zone-edited",
-      value: `zone ${newZone}`,
-      object: "Subscription",
-      objectId: subscriptionId,
-    });
-    revalidatePath(`/detail/${subscriptionId}`);
-    revalidatePath("/");
+    await applySubscriptionZone(subscriptionId, newZone);
+    await logZoneChange(userId, actorId, subscriptionId, newZone);
+    revalidateZonePaths(subscriptionId);
     return;
   }
 
@@ -158,12 +202,46 @@ export async function updateSubscriptionZone(input: UpdateSubscriptionZoneInput)
     newZone > 0 ? await fetchP1ValidityMonths(newZone, subscription.household_size ?? 0) : null;
 
   await updateSubscriptionItemsByZone(subscription, newZone, newP1ValidityMonths);
+  await applySubscriptionZone(subscriptionId, newZone);
+  await logZoneChange(userId, actorId, subscriptionId, newZone);
+  revalidateZonePaths(subscriptionId);
+}
 
+async function updateSubscription(
+  subscriptionId: number,
+  data: ZoneSubscriptionData,
+): Promise<void> {
+  await prisma.subscriptions.update({
+    where: { id: subscriptionId },
+    data: {
+      country_id: data.countryId,
+      state_id: data.stateId ?? null,
+      city: data.city,
+      zip: data.zip,
+      household_size: data.householdSize,
+      is_well_water: data.isWellWater,
+      has_filtration_system: data.isWellWater ? data.hasFiltrationSystem : null,
+      has_micron_system: data.hasMicronSystem,
+    },
+  });
+}
+
+async function applySubscriptionZone(
+  subscriptionId: number,
+  newZone: number,
+): Promise<void> {
   await prisma.subscriptions.update({
     where: { id: subscriptionId },
     data: { zone: newZone },
   });
+}
 
+async function logZoneChange(
+  userId: number,
+  actorId: number,
+  subscriptionId: number,
+  newZone: number,
+): Promise<void> {
   await logActivity({
     userId,
     actorId,
@@ -172,7 +250,9 @@ export async function updateSubscriptionZone(input: UpdateSubscriptionZoneInput)
     object: "Subscription",
     objectId: subscriptionId,
   });
+}
 
+function revalidateZonePaths(subscriptionId: number): void {
   revalidatePath(`/detail/${subscriptionId}`);
   revalidatePath("/");
 }
@@ -299,21 +379,12 @@ async function updateLinkedProductByZone(
       product_id: renewalFilterProduct.id,
       deleted_at: null,
     },
-    select: { id: true, ends_at: true },
+    select: { id: true },
   });
   if (!subscriptionItem) return;
 
   await prisma.subscription_items.update({
     where: { id: subscriptionItem.id },
-    data: {
-      linked_product_id: linkedProduct?.id ?? null,
-      ends_at: subscriptionItem.ends_at,
-    },
+    data: { linked_product_id: linkedProduct?.id ?? null },
   });
-}
-
-function addMonths(date: Date, months: number): Date {
-  const out = new Date(date);
-  out.setMonth(out.getMonth() + months);
-  return out;
 }

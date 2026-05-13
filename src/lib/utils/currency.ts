@@ -6,6 +6,10 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   AUD: "A$",
 };
 
+export function round2(amount: number): number {
+  return Math.round(amount * 100) / 100;
+}
+
 export function formatPrice(amount: number | null | undefined, currency: string = "USD"): string {
   const value = Number.isFinite(amount as number) ? (amount as number) : 0;
   const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `;

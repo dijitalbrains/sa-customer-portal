@@ -1,5 +1,16 @@
 import type { CountryOption } from "@/lib/types/reference";
 
+export interface ZoneSubscriptionData {
+  countryId: number;
+  stateId: number | null;
+  city: string;
+  zip: string;
+  householdSize: number;
+  isWellWater: boolean;
+  hasFiltrationSystem: boolean;
+  hasMicronSystem: boolean;
+}
+
 export interface ZoneFormInput {
   subscriptionId: number;
   countryId: number;

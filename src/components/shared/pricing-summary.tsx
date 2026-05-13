@@ -59,9 +59,9 @@ export default function PricingSummary({
         </div>
 
         {isFedex && estimatedTax > 0 && (
-          <div className="mt-2.5 flex items-center justify-between rounded px-2 py-1 text-xs text-status-active-text bg-status-success/40">
-            <span>Estimated tax and duties</span>
-            <span className="font-medium">{formatPrice(estimatedTax)}</span>
+          <div className="mt-3 flex items-center justify-between gap-3 text-[13px] text-[#08cb00]">
+            <span>Estimated Tax and duties</span>
+            <span>{formatPrice(estimatedTax)}</span>
           </div>
         )}
       </div>

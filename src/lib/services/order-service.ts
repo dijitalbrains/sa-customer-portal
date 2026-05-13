@@ -1,22 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { formatShortDate } from "@/lib/utils/date";
 import { formatAddress } from "@/lib/utils/address";
+import { round2 } from "@/lib/utils/currency";
 import { getOrderPayment } from "@/lib/utils/payment";
+import type { OrderAddressJson } from "@/lib/types/address";
 import type { OrderListItem, OrderDetail, OrderItemGroup } from "@/lib/types/order";
 
 type RawOrder = Awaited<ReturnType<typeof fetchUserOrders>>[number];
 type RawDetailOrder = NonNullable<Awaited<ReturnType<typeof fetchOrder>>>;
-
-interface AddressJson {
-  id?: number;
-  name?: string;
-  phone?: string;
-  street?: string;
-  apartment?: string;
-  city?: string;
-  zip?: string;
-  state?: { abbr?: string };
-}
 
 export async function getOrders(userId: number): Promise<OrderListItem[]> {
   const orders = await fetchUserOrders(userId);
@@ -112,7 +103,7 @@ function buildItemGroups(order: RawDetailOrder): OrderItemGroup[] {
 
   for (const oi of order.order_items) {
     for (const detail of oi.order_item_details) {
-      const addr = detail.user_address as AddressJson | null;
+      const addr = detail.user_address as OrderAddressJson | null;
       const key = addr?.id ? String(addr.id) : "no-address";
 
       if (!groupMap.has(key)) {
@@ -129,8 +120,4 @@ function buildItemGroups(order: RawDetailOrder): OrderItemGroup[] {
   }
 
   return Array.from(groupMap.values());
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
 }

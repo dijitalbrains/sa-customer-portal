@@ -1,5 +1,6 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { formatAddress } from "@/lib/utils/address";
 import type { AddressInput, UserAddressView } from "@/lib/types/address";
 
 export async function listUserAddresses(userId: number): Promise<UserAddressView[]> {
@@ -8,9 +9,7 @@ export async function listUserAddresses(userId: number): Promise<UserAddressView
     orderBy: { id: "asc" },
     select: addressSelect,
   });
-
-  const counts = await activeSubscriptionCounts(user_addresses.map((r) => r.id));
-  return user_addresses.map((r) => toView(r, counts.get(Number(r.id)) ?? 0));
+  return user_addresses.map(toView);
 }
 
 export async function findUserAddress(
@@ -21,9 +20,7 @@ export async function findUserAddress(
     where: { id: addressId, user_id: userId, deleted_at: null },
     select: addressSelect,
   });
-  if (!r) return null;
-  const counts = await activeSubscriptionCounts([r.id]);
-  return toView(r, counts.get(Number(r.id)) ?? 0);
+  return r ? toView(r) : null;
 }
 
 export async function migrateSubscriptionsBetweenAddresses(
@@ -63,10 +60,7 @@ export async function createUserAddress(
   input: AddressInput,
 ): Promise<number> {
   if (input.isDefault) {
-    await prisma.user_addresses.updateMany({
-      where: { user_id: userId, is_default: true },
-      data: { is_default: false },
-    });
+    await clearDefaultAddress(userId);
   }
   const created = await prisma.user_addresses.create({
     data: {
@@ -124,10 +118,7 @@ export async function setDefaultUserAddress(
   });
   if (!owned) throw new Error("Address not found");
 
-  await prisma.user_addresses.updateMany({
-    where: { user_id: userId, is_default: true },
-    data: { is_default: false },
-  });
+  await clearDefaultAddress(userId);
   await prisma.user_addresses.update({
     where: { id: addressId },
     data: { is_default: true },
@@ -151,6 +142,13 @@ export async function deleteUserAddress(
   });
 }
 
+async function clearDefaultAddress(userId: number): Promise<void> {
+  await prisma.user_addresses.updateMany({
+    where: { user_id: userId, is_default: true },
+    data: { is_default: false },
+  });
+}
+
 const addressSelect = {
   id: true,
   name: true,
@@ -165,29 +163,18 @@ const addressSelect = {
   delivery_instructions: true,
   states: { select: { id: true, name: true, abbr: true } },
   countries: { select: { id: true, name: true } },
+  _count: {
+    select: {
+      subscription_items: { where: { deleted_at: null } },
+    },
+  },
 } as const;
 
 type AddressRow = NonNullable<
   Awaited<ReturnType<typeof prisma.user_addresses.findFirst<{ select: typeof addressSelect }>>>
 >;
 
-async function activeSubscriptionCounts(addressIds: bigint[]): Promise<Map<number, number>> {
-  if (addressIds.length === 0) return new Map();
-  const rows = await prisma.subscription_items.groupBy({
-    by: ["user_address_id"],
-    where: { user_address_id: { in: addressIds }, deleted_at: null },
-    _count: { _all: true },
-  });
-  const map = new Map<number, number>();
-  for (const r of rows) {
-    if (r.user_address_id !== null) {
-      map.set(Number(r.user_address_id), r._count._all);
-    }
-  }
-  return map;
-}
-
-function toView(r: AddressRow, activeSubscriptions: number): UserAddressView {
+function toView(r: AddressRow): UserAddressView {
   return {
     id: Number(r.id),
     name: r.name,
@@ -203,12 +190,7 @@ function toView(r: AddressRow, activeSubscriptions: number): UserAddressView {
     countryName: r.countries?.name ?? null,
     isDefault: r.is_default,
     deliveryInstructions: r.delivery_instructions,
-    activeSubscriptions,
+    activeSubscriptions: r._count.subscription_items,
     formatted: formatAddress(r),
   };
-}
-
-function formatAddress(r: AddressRow): string {
-  const parts = [r.street, r.apartment, `${r.city}, ${r.states.abbr} ${r.zip}`].filter(Boolean);
-  return parts.join(" ");
 }

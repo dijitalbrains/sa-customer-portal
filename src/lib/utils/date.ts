@@ -48,6 +48,20 @@ export function formatShortDateTime(date: Date | null): string {
   return `${SHORT_DATE.format(d)} \u2022 ${TIME.format(d)}`;
 }
 
+export function addMonths(date: Date, months: number): Date {
+  const out = new Date(date);
+  out.setMonth(out.getMonth() + months);
+  return out;
+}
+
+export function addInterval(date: Date, value: number, unit: "MONTHS" | "WEEKS"): Date {
+  const out = new Date(date);
+  if (value <= 0) return out;
+  if (unit === "MONTHS") out.setMonth(out.getMonth() + value);
+  else out.setDate(out.getDate() + value * 7);
+  return out;
+}
+
 export function getMonthsRemaining(endsAt: Date | null): number | null {
   if (!endsAt) return null;
   const now = new Date();

@@ -1,3 +1,28 @@
+import { round2 } from "@/lib/utils/currency";
+
+export function formatLineLabel(name: string, quantity: number): string {
+  return quantity > 1 ? `(${quantity}x) ${name}` : name;
+}
+
+export interface ItemSubtotalInput {
+  quantity: number;
+  linkedQuantity: number | null;
+  productPrice: number;
+  linkedPrice: number | null;
+}
+
+export function calculateItemSubtotal({
+  quantity,
+  linkedQuantity,
+  productPrice,
+  linkedPrice,
+}: ItemSubtotalInput): number {
+  const main = productPrice * quantity;
+  const effectiveLinkedQty = (linkedQuantity ?? 1) * quantity;
+  const linkedTotal = linkedPrice !== null ? linkedPrice * effectiveLinkedQty : 0;
+  return round2(main + linkedTotal);
+}
+
 export interface LoyaltyInput {
   rawPrice: number | null;
   loyaltyDiscountUnit: "PERCENTAGE" | "AMOUNT" | null;

@@ -1,5 +1,5 @@
 import { getAddresses, getCountries } from "@/lib/actions/address.actions";
-import AddressList from "@/components/shared/addresses/address-list";
+import AddressList from "./_components/address-list";
 
 export default async function AddressesPage() {
   const [addresses, countries] = await Promise.all([getAddresses(), getCountries()]);

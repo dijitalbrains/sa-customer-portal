@@ -3,10 +3,16 @@ import { formatShortDate } from "@/lib/utils/date";
 import { formatAddress } from "@/lib/utils/address";
 import { getValidityStatus } from "@/lib/utils/subscription";
 import { getPaymentMethod } from "@/lib/utils/payment";
-import { calculateTax } from "@/lib/services/tax-service";
-import { calculateShipping } from "@/lib/services/shipping-service";
+import { calculateTax, type TaxBreakdown } from "@/lib/services/tax-service";
+import { calculateShipping, type ShippingResult } from "@/lib/services/shipping-service";
 import { getAvailableLinkedProducts } from "@/lib/services/linked-product-service";
-import { applyLoyaltyDiscount, type LoyaltyPrice } from "@/lib/services/pricing-service";
+import {
+  applyLoyaltyDiscount,
+  calculateItemSubtotal,
+  formatLineLabel,
+  type LoyaltyPrice,
+} from "@/lib/services/pricing-service";
+import { round2 } from "@/lib/utils/currency";
 import type {
   PriceLine,
   RenewalDetailResponse,
@@ -65,7 +71,17 @@ function fetchSubscription(subscriptionId: number, userId: number) {
           user_addresses: {
             include: {
               states: true,
-              countries: { select: { code: true, tax_source: true, tax_percent: true } },
+              countries: {
+                select: {
+                  id: true,
+                  code: true,
+                  tax_source: true,
+                  tax_percent: true,
+                  hts_code: true,
+                  shipping_price_source: true,
+                  currencies: { select: { code: true } },
+                },
+              },
             },
           },
           user_stripe_sources: true,
@@ -120,38 +136,19 @@ async function toRenewalItem(
   const product = item.products_subscription_items_product_idToproducts;
   const linked = item.products_subscription_items_linked_product_idToproducts;
 
-  const productPricing = priceWithLoyalty(product, subscription.isLoyaltyEnabled);
-  const linkedPricing = linked ? priceWithLoyalty(linked, subscription.isLoyaltyEnabled) : null;
+  const { productPricing, linkedPricing, subTotal } = computeItemPricing(
+    item,
+    subscription.isLoyaltyEnabled,
+  );
 
-  const subTotal = calcSubTotal(item, productPricing, linkedPricing);
-
-  const shippingResult = item.user_address_id
-    ? await calculateShipping({
-        productId: item.product_id,
-        linkedProductId: item.linked_product_id ?? null,
-        linkedProductQuantity: item.linked_product_quantity ?? 1,
-        quantity: item.quantity,
-        userAddressId: Number(item.user_address_id),
-      })
-    : { shippingPrice: 0, estimatedTax: 0 };
+  const [shippingResult, taxBreakdown] = await Promise.all([
+    fetchItemShipping(item),
+    fetchItemTax(item, subTotal, isUserTaxExempted),
+  ]);
   const shipping = shippingResult.shippingPrice;
+  const estimatedTax = taxBreakdown.estimatedTax || shippingResult.estimatedTax;
 
-  const taxBreakdown = await calculateTax({
-    subtotal: subTotal,
-    address: item.user_addresses
-      ? {
-          zip: item.user_addresses.zip,
-          city: item.user_addresses.city,
-          street: item.user_addresses.street,
-          countries: item.user_addresses.countries,
-        }
-      : null,
-    isUserTaxExempted,
-  });
-
-  const status = getValidityStatus(item.ends_at);
-  const isPending = status === "PENDING";
-  const isExpired = status === "EXPIRED";
+  const { status, isPending } = determineItemStatus(item.ends_at);
 
   return {
     id: Number(item.id),
@@ -159,7 +156,7 @@ async function toRenewalItem(
     productKey: product.key,
     productImage: buildImageUrl(product.image),
     productType: product.type ?? "",
-    status: isExpired ? "expired" : isPending ? "pending" : "active",
+    status,
     isPending,
     isP1Filter: product.key === P1_FILTER_KEY,
     validityType: item.validity_type,
@@ -182,13 +179,72 @@ async function toRenewalItem(
     shipping,
     taxPercent: taxBreakdown.taxPercent,
     tax: taxBreakdown.tax,
-    estimatedTax: taxBreakdown.estimatedTax,
+    estimatedTax,
     taxExempted: taxBreakdown.taxExempted,
     taxSource: taxBreakdown.source,
     total: round2(subTotal + shipping + taxBreakdown.tax),
 
     subscription,
   };
+}
+
+interface ItemPricing {
+  productPricing: LoyaltyPrice;
+  linkedPricing: LoyaltyPrice | null;
+  subTotal: number;
+}
+
+function computeItemPricing(item: RawSubscriptionItem, isLoyaltyEnabled: boolean): ItemPricing {
+  const product = item.products_subscription_items_product_idToproducts;
+  const linked = item.products_subscription_items_linked_product_idToproducts;
+
+  const productPricing = priceWithLoyalty(product, isLoyaltyEnabled);
+  const linkedPricing = linked ? priceWithLoyalty(linked, isLoyaltyEnabled) : null;
+  const subTotal = calcSubTotal(item, productPricing, linkedPricing);
+
+  return { productPricing, linkedPricing, subTotal };
+}
+
+async function fetchItemShipping(item: RawSubscriptionItem): Promise<ShippingResult> {
+  if (!item.user_address_id || !item.user_addresses) {
+    return { shippingPrice: 0, estimatedTax: 0 };
+  }
+  return calculateShipping({
+    product: item.products_subscription_items_product_idToproducts,
+    address: item.user_addresses,
+    linkedProductId: item.linked_product_id ?? null,
+    linkedProductQuantity: item.linked_product_quantity ?? 1,
+    quantity: item.quantity,
+  });
+}
+
+function fetchItemTax(
+  item: RawSubscriptionItem,
+  subtotal: number,
+  isUserTaxExempted: boolean,
+): Promise<TaxBreakdown> {
+  return calculateTax({
+    subtotal,
+    address: item.user_addresses
+      ? {
+          zip: item.user_addresses.zip,
+          city: item.user_addresses.city,
+          street: item.user_addresses.street,
+          countries: item.user_addresses.countries,
+        }
+      : null,
+    isUserTaxExempted,
+  });
+}
+
+function determineItemStatus(endsAt: Date | null): {
+  status: "expired" | "pending" | "active";
+  isPending: boolean;
+} {
+  const validity = getValidityStatus(endsAt);
+  if (validity === "EXPIRED") return { status: "expired", isPending: false };
+  if (validity === "PENDING") return { status: "pending", isPending: true };
+  return { status: "active", isPending: false };
 }
 
 // ─── Calculations ────────────────────────────────────────────────────────────
@@ -198,10 +254,12 @@ function calcSubTotal(
   product: LoyaltyPrice,
   linked: LoyaltyPrice | null,
 ): number {
-  const main = product.price * item.quantity;
-  const linkedQty = (item.linked_product_quantity ?? 1) * item.quantity;
-  const linkedTotal = linked ? linked.price * linkedQty : 0;
-  return round2(main + linkedTotal);
+  return calculateItemSubtotal({
+    quantity: item.quantity,
+    linkedQuantity: item.linked_product_quantity ?? null,
+    productPrice: product.price,
+    linkedPrice: linked ? linked.price : null,
+  });
 }
 
 function buildPricingLines(
@@ -212,11 +270,19 @@ function buildPricingLines(
   productPricing: LoyaltyPrice,
   linkedPricing: LoyaltyPrice | null,
 ): PriceLine[] {
-  const lines: PriceLine[] = [linePrice(product.name, productPricing, item.quantity)];
+  const lines: PriceLine[] = [
+    linePrice(formatLineLabel(product.name, item.quantity), productPricing, item.quantity),
+  ];
 
   if (linked && linkedPricing) {
     const linkedQty = (item.linked_product_quantity ?? 1) * item.quantity;
-    lines.push(linePrice(`Zone ${zone} (${linked.name})`, linkedPricing, linkedQty));
+    lines.push(
+      linePrice(
+        formatLineLabel(`Zone ${zone} (${linked.name})`, linkedQty),
+        linkedPricing,
+        linkedQty,
+      ),
+    );
   }
 
   return lines;
@@ -242,10 +308,6 @@ function priceWithLoyalty(product: RawProduct, isLoyaltyEnabled: boolean): Loyal
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
 
 function buildImageUrl(filename: string | null): string {
   if (!filename) return "/assets/images/product-placeholder.svg";

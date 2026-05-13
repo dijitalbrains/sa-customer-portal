@@ -9,7 +9,9 @@ import { deleteAddress, setDefaultAddress } from "@/lib/actions/address.actions"
 import type { UserAddressView } from "@/lib/types/address";
 import type { CountryOption } from "@/lib/types/reference";
 import AddressCard from "./address-card";
-import AddressFormDialog, { type AddressDialogMode } from "./address-form-dialog";
+import AddressFormDialog, {
+  type AddressDialogMode,
+} from "@/components/shared/addresses/address-form-dialog";
 import DefaultMessageDialog from "@/components/shared/default-message-dialog";
 
 interface AddressListProps {

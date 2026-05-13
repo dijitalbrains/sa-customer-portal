@@ -11,6 +11,17 @@ export interface AddressInput {
   deliveryInstructions: string | null;
 }
 
+export interface OrderAddressJson {
+  id?: number;
+  name?: string;
+  phone?: string;
+  street?: string;
+  apartment?: string;
+  city?: string;
+  zip?: string;
+  state?: { abbr?: string };
+}
+
 export interface UserAddressView {
   id: number;
   name: string | null;
