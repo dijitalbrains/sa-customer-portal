@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ChangeShippingDialog from "./change-shipping-dialog";
+import ChangeShippingDialog from "./change-shipping-address/change-shipping-dialog";
 
 interface ShipToButtonProps {
   subscriptionItemId: number;

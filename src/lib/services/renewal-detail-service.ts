@@ -168,6 +168,8 @@ async function toRenewalItem(
       : formatShortDate(subscription.isLoyaltyEnabled ? item.ends_at : item.upcoming_reminder),
     shipTo: formatAddress(item.user_addresses),
     userAddressId: item.user_address_id ? Number(item.user_address_id) : null,
+    userStripeSourceId: item.user_stripe_source_id ? Number(item.user_stripe_source_id) : null,
+    userBankAccountId: item.user_bank_account_id ? Number(item.user_bank_account_id) : null,
     payment: getPaymentMethod(item),
     quantity: item.quantity,
     linkedProductName: linked?.name ?? null,
@@ -342,6 +344,48 @@ export async function updateSubscriptionItemAddress(
     where: { id: itemId },
     data: { user_address_id: addressId },
   });
+
+  return { subscriptionId: Number(item.subscription_id) };
+}
+
+export async function updateSubscriptionItemPaymentMethod(
+  itemId: number,
+  userId: number,
+  type: "card" | "bank",
+  paymentMethodId: number,
+): Promise<{ subscriptionId: number }> {
+  const item = await prisma.subscription_items.findFirst({
+    where: {
+      id: itemId,
+      subscriptions: { is: { user_id: userId } },
+    },
+    select: { id: true, subscription_id: true },
+  });
+  if (!item || item.subscription_id === null) {
+    throw new Error("Subscription item not found");
+  }
+
+  if (type === "card") {
+    const card = await prisma.user_stripe_sources.findFirst({
+      where: { id: paymentMethodId, user_id: userId, deleted_at: null },
+      select: { id: true },
+    });
+    if (!card) throw new Error("Card not found");
+    await prisma.subscription_items.update({
+      where: { id: itemId },
+      data: { user_stripe_source_id: paymentMethodId, user_bank_account_id: null },
+    });
+  } else {
+    const bank = await prisma.user_bank_accounts.findFirst({
+      where: { id: paymentMethodId, user_id: userId, deleted_at: null },
+      select: { id: true },
+    });
+    if (!bank) throw new Error("Bank account not found");
+    await prisma.subscription_items.update({
+      where: { id: itemId },
+      data: { user_bank_account_id: paymentMethodId, user_stripe_source_id: null },
+    });
+  }
 
   return { subscriptionId: Number(item.subscription_id) };
 }
