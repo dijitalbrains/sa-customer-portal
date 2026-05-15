@@ -5,7 +5,8 @@ export type ActivityObject =
   | "SubscriptionItem"
   | "Order"
   | "User"
-  | "UserAddress";
+  | "UserAddress"
+  | "UserCredit";
 
 export interface LogActivityInput {
   userId: number;

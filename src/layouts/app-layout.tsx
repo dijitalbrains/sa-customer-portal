@@ -8,6 +8,8 @@ interface AppLayoutProps {
   userName: string;
   adminId?: number;
   legacyPortalUrl: string;
+  credits: number;
+  isAdmin: boolean;
   children: React.ReactNode;
 }
 
@@ -15,13 +17,20 @@ export default function AppLayout({
   userName,
   adminId,
   legacyPortalUrl,
+  credits,
+  isAdmin,
   children,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div data-print-root="" className="flex h-screen overflow-hidden bg-white">
-      <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AppSidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        credits={credits}
+        isAdmin={isAdmin}
+      />
       <div className="flex-1 flex flex-col min-w-0">
         {adminId != null && adminId > 0 && (
           <div data-print-hide="" className="bg-status-warning px-4 py-1.5 text-center text-[12px] font-medium text-text-heading">

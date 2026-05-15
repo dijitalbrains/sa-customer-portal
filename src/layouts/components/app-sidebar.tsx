@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import UpdateCreditsModal from "@/components/shared/credits/update-credits";
 
 const navItems = [
   { href: "/", label: "Filter Renewals", icon: "/assets/icons/nav-filter.svg" },
@@ -15,10 +17,13 @@ const navItems = [
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  credits: number;
+  isAdmin: boolean;
 }
 
-export default function Sidebar({ open, onClose }: SidebarProps) {
+export default function Sidebar({ open, onClose, credits, isAdmin }: SidebarProps) {
   const pathname = usePathname();
+  const [creditsModalOpen, setCreditsModalOpen] = useState(false);
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";
@@ -88,7 +93,25 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         <div className="px-4 py-6">
           <div className="bg-surface-overlay rounded-lg px-4 py-4 flex items-center justify-between">
             <span className="text-black text-[14px]">Credits:</span>
-            <span className="text-brand-primary font-bold text-[15px]">$1500</span>
+            <div className="flex items-center gap-2">
+              <span className="text-brand-primary font-bold text-[15px]">
+                ${credits}
+              </span>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setCreditsModalOpen(true)}
+                  aria-label="Update credits"
+                  className="w-6 h-6 rounded-full flex items-center justify-center hover:bg-black/5 transition-colors cursor-pointer"
+                >
+                  <img
+                    src="/assets/icons/edit-pencil.svg"
+                    alt=""
+                    className="w-3.5 h-3.5"
+                  />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -103,6 +126,14 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </a>
         </div>
       </aside>
+
+      {isAdmin && (
+        <UpdateCreditsModal
+          open={creditsModalOpen}
+          onClose={() => setCreditsModalOpen(false)}
+          currentCredits={credits}
+        />
+      )}
     </>
   );
 }
