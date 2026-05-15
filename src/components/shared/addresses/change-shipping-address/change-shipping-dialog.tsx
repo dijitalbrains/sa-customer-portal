@@ -109,6 +109,7 @@ export default function ChangeShippingDialog({
         address={null}
         allAddresses={addresses ?? []}
         onCreated={handleNewAddressCreated}
+        onBack={() => setView("list")}
       />
     );
   }

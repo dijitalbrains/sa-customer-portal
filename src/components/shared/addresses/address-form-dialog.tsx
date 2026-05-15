@@ -27,6 +27,7 @@ interface AddressFormDialogProps {
   allAddresses: UserAddressView[];
   mode?: AddressDialogMode;
   onCreated?: (addressId: number) => void | Promise<void>;
+  onBack?: () => void;
 }
 
 interface FormState {
@@ -52,6 +53,7 @@ export default function AddressFormDialog({
   allAddresses,
   mode = "edit",
   onCreated,
+  onBack,
 }: AddressFormDialogProps) {
   const isEdit = address !== null;
   const isRemove = mode === "remove";
@@ -194,8 +196,8 @@ export default function AddressFormDialog({
 
       <div className="px-7 py-6 flex flex-col gap-3.5">
             {isEditWithSubs && address && (
-              <div className="rounded-[8px] bg-[#eef6fc] px-3 py-2.5">
-                <p className="text-[12px] text-text-muted">
+              <div className="rounded-[8px] px-3 py-2.5 border-1 border-[#FADAB7] bg-[#FFF7EB]">
+                <p className="text-[12px] text-[#995900]">
                   This address is linked to {address.activeSubscriptions} active subscription
                   {address.activeSubscriptions === 1 ? "" : "s"}. Updating this address will
                   apply the changes to all of them.
@@ -205,8 +207,8 @@ export default function AddressFormDialog({
 
             {requireMigration && (
               <div className="flex flex-col gap-3">
-                <div className="rounded-[8px] bg-[#eef6fc] px-3 py-2.5">
-                  <p className="text-[12px] text-text-muted">
+                <div className="rounded-[8px] px-3 py-2.5 border-1 border-[#FADAB7] bg-[#FFF7EB]">
+                  <p className="text-[12px] text-[#995900]">
                     This address is linked to {address?.activeSubscriptions} active subscription
                     {address?.activeSubscriptions === 1 ? "" : "s"}.{" "}
                     {isRemove
@@ -225,7 +227,7 @@ export default function AddressFormDialog({
                 {showFormFields && (
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-border-subtle" />
-                    <span className="text-[11px] font-semibold text-text-muted">OR</span>
+                    <span className="text-[11px] font-semibold text-text-muted">OR Add New Address</span>
                     <div className="flex-1 h-px bg-border-subtle" />
                   </div>
                 )}
@@ -335,15 +337,27 @@ export default function AddressFormDialog({
 
             {error && <p className="text-xs text-status-error-text">{error}</p>}
 
+            <div className="flex items-center gap-2 mt-2">
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  disabled={saving}
+                  className="h-11 px-5 rounded-pill border border-brand-primary/30 bg-white text-[13px] font-semibold text-brand-primary hover:bg-brand-surface disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  ← Go Back
+                </button>
+              )}
             <button
               type="button"
               onClick={submit}
               disabled={saving}
-              className="h-11 mt-2 rounded-pill bg-brand-gradient shadow-[0px_6px_18px_0px_rgba(55,146,222,0.35)] text-white font-bold text-sm hover:opacity-95 disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              className="flex-1 h-11 rounded-pill bg-brand-gradient shadow-[0px_6px_18px_0px_rgba(55,146,222,0.35)] text-white font-bold text-sm hover:opacity-95 disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
             >
               {saving && <LoadingSpinner size={16} className="border-white/30 border-t-white" />}
               {submitLabel}
             </button>
+            </div>
           </div>
     </Modal>
   );

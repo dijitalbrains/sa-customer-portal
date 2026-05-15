@@ -73,8 +73,8 @@ export async function getShippingPriceForItem(
   return calculateShipping({
     product: item.products_subscription_items_product_idToproducts,
     address: item.user_addresses,
-    linkedProductId: item.linked_product_id ?? null,
-    linkedProductQuantity: item.linked_product_quantity ?? 1,
+    linkedProductId: null,
+    linkedProductQuantity: 0,
     quantity,
   });
 }
