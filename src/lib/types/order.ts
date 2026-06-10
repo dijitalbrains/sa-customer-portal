@@ -1,5 +1,12 @@
 import type { PaymentMethod } from "./payment";
 
+export interface OrderRunResult {
+  orderId: number;
+  subscriptionId: number;
+  paymentMethod: "CARD" | "ACH";
+  isACHPending: boolean;
+}
+
 export interface OrderListItem {
   id: number;
   placedDate: string;

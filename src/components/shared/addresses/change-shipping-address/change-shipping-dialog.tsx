@@ -11,10 +11,6 @@ import {
   getAddresses,
   getCountries,
 } from "@/lib/actions/address.actions";
-import {
-  updateSubscriptionItemShippingAddress,
-  type ShippingChangeType,
-} from "@/lib/actions/renewal-detail.actions";
 import type { UserAddressView } from "@/lib/types/address";
 import type { CountryOption } from "@/lib/types/reference";
 import SelectedAddressCard from "./selected-address-card";
@@ -22,9 +18,9 @@ import SelectedAddressCard from "./selected-address-card";
 interface ChangeShippingDialogProps {
   open: boolean;
   onClose: () => void;
-  subscriptionItemId: number;
   currentAddressId: number;
-  type?: ShippingChangeType;
+  onSave: (addressId: number) => Promise<void>;
+  successMessage?: string;
 }
 
 type View = "list" | "adding";
@@ -32,9 +28,9 @@ type View = "list" | "adding";
 export default function ChangeShippingDialog({
   open,
   onClose,
-  subscriptionItemId,
   currentAddressId,
-  type = "subscription-detail",
+  onSave,
+  successMessage = "Shipping address updated",
 }: ChangeShippingDialogProps) {
   const [view, setView] = useState<View>("list");
   const [addresses, setAddresses] = useState<UserAddressView[] | null>(null);
@@ -71,12 +67,8 @@ export default function ChangeShippingDialog({
     if (!selectedId) return;
     startSaving(async () => {
       try {
-        await updateSubscriptionItemShippingAddress({
-          subscriptionItemId,
-          userAddressId: selectedId,
-          type,
-        });
-        toast.success("Shipping address updated");
+        await onSave(selectedId);
+        toast.success(successMessage);
         onClose();
       } catch (e) {
         const message = e instanceof Error ? e.message : "Failed to update shipping address";
@@ -87,12 +79,8 @@ export default function ChangeShippingDialog({
 
   const handleNewAddressCreated = async (newAddressId: number) => {
     try {
-      await updateSubscriptionItemShippingAddress({
-        subscriptionItemId,
-        userAddressId: newAddressId,
-        type,
-      });
-      toast.success("Address added and shipping updated");
+      await onSave(newAddressId);
+      toast.success(successMessage);
       onClose();
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to update shipping address";

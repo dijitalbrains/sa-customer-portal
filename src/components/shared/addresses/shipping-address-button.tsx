@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ChangeShippingDialog from "./change-shipping-address/change-shipping-dialog";
+import { updateSubscriptionItemShippingAddress } from "@/lib/actions/renewal-detail.actions";
 
 interface ShipToButtonProps {
   subscriptionItemId: number;
@@ -18,6 +19,14 @@ export default function ShipToButton({
   shipTo,
 }: ShipToButtonProps) {
   const [open, setOpen] = useState(false);
+
+  const handleSave = async (userAddressId: number) => {
+    await updateSubscriptionItemShippingAddress({
+      subscriptionItemId,
+      userAddressId,
+      type: "subscription-detail",
+    });
+  };
 
   return (
     <>
@@ -40,8 +49,8 @@ export default function ShipToButton({
       <ChangeShippingDialog
         open={open}
         onClose={() => setOpen(false)}
-        subscriptionItemId={subscriptionItemId}
         currentAddressId={currentAddressId}
+        onSave={handleSave}
       />
     </>
   );

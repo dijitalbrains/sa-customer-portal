@@ -1,4 +1,5 @@
 import RemoveButton from "./remove-button";
+import NeedThisNowButton from "@/components/shared/need-this-now/need-this-now-button";
 import { removeSubscriptionItem } from "../actions";
 import type { RenewalItem } from "@/lib/types/subscription";
 
@@ -39,12 +40,7 @@ export default function ItemDetail({ item, isAdmin }: ItemDetailProps) {
       </div>
 
       <div className="flex flex-col items-end gap-1.5 shrink-0 pt-2 ml-auto">
-        <button
-          type="button"
-          className="font-semibold text-xs text-brand-primary hover:underline cursor-pointer whitespace-nowrap"
-        >
-          Need this item right now?
-        </button>
+        <NeedThisNowButton item={item} />
         {showDeleteP1 && (
           <RemoveButton
             label={`Delete ${item.productName}`}

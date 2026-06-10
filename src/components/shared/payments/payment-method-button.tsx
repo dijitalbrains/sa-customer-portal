@@ -3,7 +3,10 @@
 import { useState } from "react";
 import PaymentMethod from "@/components/shared/payment-method";
 import type { PaymentMethod as PaymentMethodType } from "@/lib/types/payment";
-import ChangePaymentMethodDialog from "./change-payment-method/change-payment-method-dialog";
+import { updateSubscriptionItemPayment } from "@/lib/actions/renewal-detail.actions";
+import ChangePaymentMethodDialog, {
+  type PaymentSelection,
+} from "./change-payment-method/change-payment-method-dialog";
 
 interface PaymentMethodButtonProps {
   subscriptionItemId: number;
@@ -19,6 +22,14 @@ export default function PaymentMethodButton({
   payment,
 }: PaymentMethodButtonProps) {
   const [open, setOpen] = useState(false);
+
+  const handleSave = async (selection: PaymentSelection) => {
+    await updateSubscriptionItemPayment({
+      subscriptionItemId,
+      type: selection.type,
+      paymentMethodId: selection.id,
+    });
+  };
 
   return (
     <>
@@ -47,9 +58,9 @@ export default function PaymentMethodButton({
       <ChangePaymentMethodDialog
         open={open}
         onClose={() => setOpen(false)}
-        subscriptionItemId={subscriptionItemId}
         currentCardId={currentCardId}
         currentBankId={currentBankId}
+        onSave={handleSave}
       />
     </>
   );

@@ -10,6 +10,7 @@ interface AppLayoutProps {
   legacyPortalUrl: string;
   credits: number;
   isAdmin: boolean;
+  cartItemCount: number;
   children: React.ReactNode;
 }
 
@@ -19,6 +20,7 @@ export default function AppLayout({
   legacyPortalUrl,
   credits,
   isAdmin,
+  cartItemCount,
   children,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +43,7 @@ export default function AppLayout({
           <AppHeader
             userName={userName}
             legacyPortalUrl={legacyPortalUrl}
+            cartItemCount={cartItemCount}
             onMenuClick={() => setSidebarOpen(true)}
           />
         </div>

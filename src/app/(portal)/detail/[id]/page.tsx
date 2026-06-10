@@ -20,7 +20,9 @@ export default async function RenewalDetailPage({ params }: DetailPageProps) {
 
   const { subscriptionItems, availableLinkedProducts } = detail;
   const subscription = subscriptionItems[0].subscription;
+
   const isAdmin = (session?.adminId ?? 0) > 0;
+  
   const breadcrumbTitle = subscription.nickname
     ? `${subscription.technology} – ${subscription.nickname}`
     : subscription.technology;

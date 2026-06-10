@@ -13,31 +13,31 @@ import {
   getAchEligibility,
   getPaymentMethods,
 } from "@/lib/actions/payment.actions";
-import { updateSubscriptionItemPayment } from "@/lib/actions/renewal-detail.actions";
 import type { BankPaymentMethod } from "@/lib/types/bank";
 import type { CardPaymentMethod } from "@/lib/types/card";
 import SelectableBank from "./selectable-bank";
 import SelectableCard from "./selectable-card";
 
+export type PaymentSelection = { type: "card"; id: number } | { type: "bank"; id: number };
+
 interface ChangePaymentMethodDialogProps {
   open: boolean;
   onClose: () => void;
-  subscriptionItemId: number;
   currentCardId: number | null;
   currentBankId: number | null;
+  onSave: (selection: PaymentSelection) => Promise<void>;
+  successMessage?: string;
 }
 
-type Selection =
-  | { type: "card"; id: number }
-  | { type: "bank"; id: number }
-  | null;
+type Selection = PaymentSelection | null;
 
 export default function ChangePaymentMethodDialog({
   open,
   onClose,
-  subscriptionItemId,
   currentCardId,
   currentBankId,
+  onSave,
+  successMessage = "Payment method updated",
 }: ChangePaymentMethodDialogProps) {
   const initialTab: PaymentTab = currentBankId !== null ? "bank" : "card";
   
@@ -87,12 +87,8 @@ export default function ChangePaymentMethodDialog({
     if (!selection) return;
     startSaving(async () => {
       try {
-        await updateSubscriptionItemPayment({
-          subscriptionItemId,
-          type: selection.type,
-          paymentMethodId: selection.id,
-        });
-        toast.success("Payment method updated");
+        await onSave(selection);
+        toast.success(successMessage);
         onClose();
       } catch (e) {
         const message = e instanceof Error ? e.message : "Failed to update payment method";
@@ -103,12 +99,8 @@ export default function ChangePaymentMethodDialog({
 
   const handleCardAdded = async (card: CardPaymentMethod) => {
     try {
-      await updateSubscriptionItemPayment({
-        subscriptionItemId,
-        type: "card",
-        paymentMethodId: card.id,
-      });
-      toast.success("Card added and payment method updated");
+      await onSave({ type: "card", id: card.id });
+      toast.success(successMessage);
       onClose();
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to update payment method";
@@ -118,12 +110,8 @@ export default function ChangePaymentMethodDialog({
 
   const handleBankLinked = async (bank: BankPaymentMethod) => {
     try {
-      await updateSubscriptionItemPayment({
-        subscriptionItemId,
-        type: "bank",
-        paymentMethodId: bank.id,
-      });
-      toast.success("Bank linked and payment method updated");
+      await onSave({ type: "bank", id: bank.id });
+      toast.success(successMessage);
       onClose();
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to update payment method";
