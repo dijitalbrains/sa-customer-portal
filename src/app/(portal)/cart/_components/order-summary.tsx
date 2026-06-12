@@ -98,11 +98,11 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
   const currentBankId = cart.userBankAccount?.id ?? null;
 
   return (
-    <aside className="bg-surface-base border border-border-subtle rounded-card p-5 flex flex-col gap-4 sticky top-3">
-      <h2 className="font-bold text-[15px] text-text-heading">Order Summary</h2>
+    <aside className="bg-white shadow-card rounded-card flex flex-col gap-4 sticky top-3 py-3">
+      <h2 className="font-bold text-[15px] text-text-heading px-5 py-0">Order Summary</h2>
 
       {showCreditBanner && (
-        <div className="rounded-lg bg-[#E8F8EC] border border-[#22c55e]/30 px-3 py-2.5 flex flex-col gap-1.5">
+        <div className="px-5 bg-[#E8F8EC] border-t border-b border-[#22c55e]/30 py-2.5 flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-[12px] text-[#08732B]">
               You have Spring Aqua credits!
@@ -118,14 +118,14 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
             type="button"
             onClick={handleApplyCredits}
             disabled={pending}
-            className="self-start mt-1 px-3 py-1 rounded-full bg-white/80 text-[10px] font-semibold text-[#08732B] hover:bg-white cursor-pointer disabled:opacity-50"
+            className="border border-[#08732B] self-start mt-1 px-3 py-1 rounded-full bg-white/80 text-[10px] font-semibold text-[#08732B] hover:bg-white cursor-pointer disabled:opacity-50"
           >
             Apply credits
           </button>
         </div>
       )}
 
-      <div className="flex flex-col gap-2 text-[13px]">
+      <div className="flex flex-col gap-2 text-[13px] px-5">
         <SummaryRow
           label={`Subtotal (${cart.items.length} items)`}
           value={formatPrice(cart.subtotal)}
@@ -162,7 +162,7 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
                 type="button"
                 onClick={handleRemoveCredits}
                 disabled={pending}
-                className="text-[10px] font-semibold text-brand-primary hover:underline cursor-pointer disabled:opacity-50"
+                className="text-[10px] font-semibold text-brand-primary underline cursor-pointer disabled:opacity-50"
               >
                 Remove
               </button>
@@ -171,22 +171,26 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
         )}
       </div>
 
-      <div className="border-t border-border-subtle pt-3 flex items-center justify-between">
+      <div className="h-px bg-[#E0E3EB]" />
+      
+      <div className="flex items-center justify-between px-5">
         <span className="font-bold text-[15px] text-text-heading">Order Total</span>
         <span className="font-bold text-[18px] text-brand-primary">{formatPrice(orderTotal)}</span>
       </div>
 
       {isFedex && cart.estimatedTax > 0 && (
-        <div className="text-[12px] text-[#08cb00] flex items-center justify-between">
+        <div className="text-[12px] text-[#08cb00] flex items-center justify-between px-5">
           <span>Estimated Tax and duties</span>
           <span>{formatPrice(cart.estimatedTax)}</span>
         </div>
       )}
 
+      <div className="h-px bg-[#E0E3EB]" />
+
       <button
         type="button"
         onClick={() => setShippingDialogOpen(true)}
-        className="flex items-start justify-between gap-3 text-left rounded-lg hover:bg-surface-overlay px-2 py-2 cursor-pointer transition-colors"
+        className="flex items-start justify-between px-5 gap-3 text-left hover:bg-surface-overlay px-2 py-2 cursor-pointer transition-colors"
       >
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[11px] text-text-muted">Shipping to</span>
@@ -197,10 +201,12 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
         <img src="/assets/icons/chevron-right.svg" alt="" className="w-3 h-3 mt-1 shrink-0" />
       </button>
 
+      <div className="h-px bg-[#E0E3EB]" />
+
       <button
         type="button"
         onClick={() => setPaymentDialogOpen(true)}
-        className="flex items-start justify-between gap-3 text-left rounded-lg hover:bg-surface-overlay px-2 py-2 cursor-pointer transition-colors"
+        className="flex items-start justify-between px-5 gap-3 text-left hover:bg-surface-overlay px-2 py-2 cursor-pointer transition-colors"
       >
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-[11px] text-text-muted">Payment</span>
@@ -217,7 +223,7 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
         loading={pending}
         loadingText="Placing order…"
         onClick={handlePlaceOrder}
-        className="w-full rounded-pill"
+        className="rounded-pill mx-5 mb-3 mt-2"
       >
         Place Order
       </Button>

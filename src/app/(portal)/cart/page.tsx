@@ -34,7 +34,7 @@ export default async function CartPage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_500px] gap-4 items-start">
         <div className="flex flex-col gap-4 min-w-0">
           {groups.map((group, index) => (
             <OrderGroupCard key={index} title={group.title} items={group.items} />
