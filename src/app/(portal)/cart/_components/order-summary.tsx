@@ -102,23 +102,23 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
       <h2 className="font-bold text-[15px] text-text-heading px-5 py-0">Order Summary</h2>
 
       {showCreditBanner && (
-        <div className="px-5 bg-[#E8F8EC] border-t border-b border-[#22c55e]/30 py-2.5 flex flex-col gap-1.5">
+        <div className="px-5 bg-[#F0FDF4] border-t border-b border-[#22BB62]/30 py-2.5 flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-[12px] text-[#08732B]">
+            <span className="font-semibold text-[12px] text-[#22BB62]">
               You have Spring Aqua credits!
             </span>
-            <span className="font-bold text-[13px] text-[#08732B]">
+            <span className="font-bold text-[13px] text-[#22BB62]">
               {formatPrice(creditBalance)}
             </span>
           </div>
-          <p className="text-[10px] text-[#08732B]/80 leading-snug">
+          <p className="text-[10px] text-black leading-snug">
             You may apply these credits below by clicking apply credits
           </p>
           <button
             type="button"
             onClick={handleApplyCredits}
             disabled={pending}
-            className="border border-[#08732B] self-start mt-1 px-3 py-1 rounded-full bg-white/80 text-[10px] font-semibold text-[#08732B] hover:bg-white cursor-pointer disabled:opacity-50"
+            className="border border-[#22BB62] self-start mt-1 px-3 py-1 rounded-full bg-white/80 text-[10px] font-semibold text-[#22BB62] hover:bg-white cursor-pointer disabled:opacity-50"
           >
             Apply credits
           </button>
@@ -156,7 +156,7 @@ export default function OrderSummary({ cart, creditBalance }: OrderSummaryProps)
           <SummaryRow
             label="Credits applied"
             value={`-${formatPrice(cart.creditsUsed)}`}
-            valueClass="text-[#08732B]"
+            valueClass="text-[#22BB62]"
             extra={
               <button
                 type="button"
