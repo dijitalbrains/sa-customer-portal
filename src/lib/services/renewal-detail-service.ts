@@ -62,12 +62,43 @@ function fetchSubscription(subscriptionId: number, userId: number) {
   return prisma.subscriptions.findFirst({
     where: { id: subscriptionId, user_id: userId, deleted_at: null },
     include: {
-      products: true,
+      products: {
+        select: {
+          id: true,
+          key: true,
+          name: true,
+          technology: true,
+        },
+      },
       subscription_items: {
         where: { deleted_at: null },
         include: {
-          products_subscription_items_product_idToproducts: true,
-          products_subscription_items_linked_product_idToproducts: true,
+          products_subscription_items_product_idToproducts: {
+            select: {
+              id: true,
+              image: true,
+              key: true,
+              loyalty_discount_unit: true,
+              loyalty_discount_value: true,
+              name: true,
+              price: true,
+              requires_shipping: true,
+              type: true,
+            },
+          },
+          products_subscription_items_linked_product_idToproducts: {
+            select: {
+              id: true,
+              image: true,
+              key: true,
+              loyalty_discount_unit: true,
+              loyalty_discount_value: true,
+              name: true,
+              price: true,
+              requires_shipping: true,
+              type: true,
+            },
+          },
           user_addresses: {
             include: {
               states: true,

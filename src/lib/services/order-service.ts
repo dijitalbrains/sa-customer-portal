@@ -339,8 +339,32 @@ function fetchSubscriptionItemForOrder(subscriptionItemId: number, userId: numbe
       subscriptions: { user_id: userId, deleted_at: null },
     },
     include: {
-      products_subscription_items_product_idToproducts: true,
-      products_subscription_items_linked_product_idToproducts: true,
+      products_subscription_items_product_idToproducts: {
+        select: {
+          id: true,
+          image: true,
+          key: true,
+          loyalty_discount_unit: true,
+          loyalty_discount_value: true,
+          name: true,
+          price: true,
+          requires_shipping: true,
+          type: true,
+        },
+      },
+      products_subscription_items_linked_product_idToproducts: {
+        select: {
+          id: true,
+          image: true,
+          key: true,
+          loyalty_discount_unit: true,
+          loyalty_discount_value: true,
+          name: true,
+          price: true,
+          requires_shipping: true,
+          type: true,
+        },
+      },
       user_addresses: {
         include: {
           states: true,
