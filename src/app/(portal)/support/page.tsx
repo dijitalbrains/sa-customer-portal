@@ -1,13 +1,21 @@
-export default function SupportPage() {
+import { getAuth } from "@/lib/auth";
+import { getSupportData } from "@/lib/services/ticket-service";
+import SupportTabs from "./_components/support-tabs";
+
+export default async function SupportPage() {
+  const { userId } = await getAuth();
+  const data = await getSupportData(userId);
+
   return (
-    <div className="flex flex-col items-center justify-center h-full min-h-[400px] gap-4 px-4">
-      <h2 className="text-2xl font-bold text-text-heading">Support</h2>
-      <p className="text-sm text-text-muted text-center">
-        Get help, submit a ticket, or contact our support team.
-      </p>
-      <div className="rounded-[10px] border border-[#F5C518]/40 bg-[#FFF8DB] px-4 py-2.5 text-[13px] font-semibold text-[#7A5A00]">
-        Coming Soon
+    <div className="flex flex-col gap-6 max-w-[1534px]">
+      <div>
+        <h1 className="text-[24px] font-semibold text-text-heading">Support</h1>
+        <p className="mt-1 text-[13px] text-[#6B7280]">
+          Get help, track your tickets, and submit new requests.
+        </p>
       </div>
+
+      <SupportTabs data={data} />
     </div>
   );
 }
