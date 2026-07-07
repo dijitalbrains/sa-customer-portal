@@ -7,7 +7,7 @@ export default async function SupportPage() {
   const data = await getSupportData(userId);
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1534px]">
+    <div className="flex flex-col gap-6 w-full">
       <div>
         <h1 className="text-[24px] font-semibold text-text-heading">Support</h1>
         <p className="mt-1 text-[13px] text-[#6B7280]">

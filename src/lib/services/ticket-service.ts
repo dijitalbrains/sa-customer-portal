@@ -1,6 +1,7 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
 import { formatShortDate, formatShortDateTime } from "@/lib/utils/date";
+import { saApiFetch } from "@/lib/sa-api";
 import type {
   FaqSuggestion,
   ReplyTicketInput,
@@ -602,20 +603,7 @@ function toInitials(name: string): string {
 }
 
 function postSaApi(path: string, body: unknown): Promise<Response> {
-  const baseUrl = (process.env.API_URL ?? "").replace(/\/$/, "");
-  const apiKey = process.env.SA_API_KEY ?? "";
-
-  return fetch(`${baseUrl}/${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      accept: "application/json",
-      "X-API-Key": apiKey,
-    },
-    body: JSON.stringify(body),
-    cache: "no-store",
-    signal: AbortSignal.timeout(20000),
-  });
+  return saApiFetch(path, { method: "POST", body: JSON.stringify(body) });
 }
 
 async function safe(action: () => Promise<unknown>): Promise<void> {

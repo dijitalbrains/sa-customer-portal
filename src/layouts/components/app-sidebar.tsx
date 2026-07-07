@@ -11,6 +11,7 @@ const navItems = [
   { href: "/orders", label: "Orders", icon: "/assets/icons/nav-orders.svg" },
   { href: "/account", label: "My Account", icon: "/assets/icons/user.svg" },
   { href: "/renewal-timeline", label: "Renewal Timeline", icon: "/assets/icons/timeline.svg" },
+  { href: "/info-sheet", label: "Info Sheet", icon: "/assets/icons/info-sheet.svg" },
   { href: "/support", label: "Support", icon: "/assets/icons/support.svg" },
 ];
 

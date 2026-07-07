@@ -17,7 +17,7 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
   if (!detail) notFound();
 
   return (
-    <div className="max-w-[1534px]">
+    <div className="w-full">
       <TicketDetailView detail={detail} />
     </div>
   );

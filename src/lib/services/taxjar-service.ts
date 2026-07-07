@@ -45,7 +45,9 @@ async function fetchRate(address: TaxJarAddress, apiKey: string): Promise<number
       cache: "no-store",
     });
     if (!res.ok) {
-      console.error(`[taxjar] ${res.status} ${res.statusText}`);
+      if (res.status !== 404) {
+        console.error(`[taxjar] ${res.status} ${res.statusText}`);
+      }
       return 0;
     }
     const body = (await res.json()) as { rate?: { combined_rate?: string | number } };
