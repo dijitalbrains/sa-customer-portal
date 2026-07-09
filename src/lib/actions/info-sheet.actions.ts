@@ -1,12 +1,12 @@
 "use server";
 
 import { getAuth } from "@/lib/auth";
-import { sendInfoSheetEmail as sendInfoSheetEmailApi } from "@/lib/services/info-sheet-service";
+import { sendInfoSheetEmail } from "@/lib/services/info-sheet-service";
 
-export async function sendInfoSheetEmail(): Promise<{ ok: boolean }> {
+export async function sendEmail(): Promise<{ ok: boolean }> {
   const { userId, isAdmin } = await getAuth();
   if (!isAdmin) throw new Error("Unauthorized");
 
-  const ok = await sendInfoSheetEmailApi(userId);
+  const ok = await sendInfoSheetEmail(userId);
   return { ok };
 }

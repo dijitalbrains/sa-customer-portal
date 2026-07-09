@@ -3,7 +3,7 @@
 import { toast } from "react-toastify";
 import Button from "@/components/ui/button";
 import { useConfirmation } from "@/components/providers/confirmation-provider";
-import { sendInfoSheetEmail } from "@/lib/actions/info-sheet.actions";
+import { sendEmail } from "@/lib/actions/info-sheet.actions";
 
 interface SendEmailButtonProps {
   email: string;
@@ -19,7 +19,7 @@ export default function SendEmailButton({ email }: SendEmailButtonProps) {
       confirmText: "Send",
       onConfirm: async () => {
         try {
-          const { ok } = await sendInfoSheetEmail();
+          const { ok } = await sendEmail();
           if (ok) {
             toast.success("Customer info sheet sent to your email.");
           } else {
