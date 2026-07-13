@@ -27,6 +27,7 @@ export interface OrderDetail {
   placedDate: string;
   placedBy: string;
   currencyCode: string;
+  countryCode: string;
   subtotal: number;
   shippingPrice: number;
   ccProcessingFee: number;

@@ -28,6 +28,7 @@ export function getPaymentMethod(item: PaymentSource): PaymentMethod {
 
   return {
     type: "card",
+    brand: card.brand,
     brandImage: getCardBrandImage(card.brand),
     last4: card.last4,
     statusText: getCardStatusText(status),
@@ -73,31 +74,27 @@ export function getCardBrandImage(brand: string): string {
 interface OrderPaymentJson {
   user_stripe_source: unknown;
   user_bank_account: unknown;
+  payment_method?: string | null;
 }
 
-interface StripeJson { brand?: string; last4?: string }
-interface BankJson { bank_name?: string; last4?: string }
+interface OrderStripeSnapshot { brand?: string; last4?: string }
+interface OrderBankSnapshot { bank_name?: string; last4?: string }
 
 export function getOrderPayment(order: OrderPaymentJson): PaymentMethod {
-  const stripe = order.user_stripe_source as StripeJson | null;
-  const bank = order.user_bank_account as BankJson | null;
+  return getPaymentMethod({
+    user_stripe_sources: order.payment_method === "ACH" ? null : toStripeSource(order.user_stripe_source),
+    user_bank_accounts: order.payment_method === "CARD" ? null : toBankAccount(order.user_bank_account),
+  });
+}
 
-  if (stripe?.brand) {
-    return {
-      type: "card",
-      brandImage: getCardBrandImage(stripe.brand),
-      last4: stripe.last4 ?? "",
-      statusText: "in good standing",
-      isFailed: false,
-      isExpiringSoon: false,
-    };
-  }
-  if (bank?.bank_name) {
-    return {
-      type: "bank",
-      bankName: bank.bank_name,
-      last4: bank.last4 ?? "",
-    };
-  }
-  return null;
+function toStripeSource(value: unknown): PaymentSource["user_stripe_sources"] {
+  const card = value as OrderStripeSnapshot | null;
+  if (!card?.brand) return null;
+  return { brand: card.brand, last4: card.last4 ?? "", has_failed: false, exp_month: "", exp_year: "" };
+}
+
+function toBankAccount(value: unknown): PaymentSource["user_bank_accounts"] {
+  const bank = value as OrderBankSnapshot | null;
+  if (!bank?.bank_name) return null;
+  return { bank_name: bank.bank_name, last4: bank.last4 ?? "" };
 }

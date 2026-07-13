@@ -105,6 +105,7 @@ function toCardPayment(card: RawCard | undefined): Payment {
     isDefault: card.is_default,
     payment: {
       type: "card",
+      brand: card.brand,
       brandImage: getCardBrandImage(card.brand),
       last4: card.last4,
       statusText: getCardStatusText(status),

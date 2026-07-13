@@ -1,6 +1,7 @@
 export type PaymentMethod =
   | {
       type: "card";
+      brand: string;
       brandImage: string;
       last4: string;
       statusText: string;

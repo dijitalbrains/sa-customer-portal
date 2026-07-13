@@ -13,13 +13,13 @@ interface InvoiceProps {
 
 function paymentDetailLine(payment: PaymentMethod): string {
   if (!payment) return "—";
-  if (payment.type === "card") return `Visa | Last digits: ${payment.last4}`;
-  return `${payment.bankName} | Last digits: ${payment.last4}`;
+  if (payment.type === "card") return `${payment.brand} | Last digits: ${payment.last4}`;
+  return `Bank Account (ACH) | ${payment.bankName} | Last digits: ${payment.last4}`;
 }
 
 function paymentTransactionLine(payment: PaymentMethod): string {
   if (!payment) return "—";
-  if (payment.type === "card") return `Visa ending in: ${payment.last4}`;
+  if (payment.type === "card") return `${payment.brand} ending in: ${payment.last4}`;
   return `${payment.bankName} ending in: ${payment.last4}`;
 }
 
@@ -106,8 +106,14 @@ export default function Invoice({ order }: InvoiceProps) {
                 <PriceRow label="CC Processing Fee (3%):" value={formatPrice(order.ccProcessingFee, order.currencyCode)} />
               )}
               <div className="h-px bg-border-subtle my-1" />
-              <PriceRow label="Total before tax:" value={formatPrice(order.subtotal, order.currencyCode)} />
-              <PriceRow label="Tax collected:" value={formatPrice(order.tax + order.estimatedTax, order.currencyCode)} />
+              {order.countryCode === "US" ? (
+                <>
+                  <PriceRow label="Total before tax:" value={formatPrice(order.subtotal, order.currencyCode)} />
+                  <PriceRow label="Tax collected:" value={formatPrice(order.tax, order.currencyCode)} />
+                </>
+              ) : (
+                <PriceRow label="Estimated tax and duties:" value={formatPrice(order.estimatedTax, order.currencyCode)} />
+              )}
               <div className="h-px bg-border-subtle my-1" />
               <div className="flex items-center justify-between bg-brand-primary/5 rounded px-2 py-1">
                 <span className="text-[12px] font-bold text-text-heading">Grand Total:</span>
@@ -120,7 +126,9 @@ export default function Invoice({ order }: InvoiceProps) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <SectionHeader label="CREDIT CARD TRANSACTIONS" />
+          <SectionHeader
+            label={order.payment?.type === "bank" ? "BANK ACCOUNT TRANSACTIONS (ACH)" : "CREDIT CARD TRANSACTIONS"}
+          />
           <div className="bg-surface-raised border border-border-subtle rounded-md px-3.5 py-2.5 flex items-center justify-between">
             <span className="text-[11px] font-normal text-text-primary">
               {paymentTransactionLine(order.payment)}

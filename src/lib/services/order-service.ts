@@ -19,7 +19,7 @@ import type {
   OrderItemGroup,
   OrderRunResult,
 } from "@/lib/types/order";
-import type { Cart, CartItem } from "@/lib/types/cart";
+import type { Cart, CartItem, CartCardSnapshot, CartBankSnapshot } from "@/lib/types/cart";
 
 type RawOrder = Awaited<ReturnType<typeof fetchUserOrders>>[number];
 type RawDetailOrder = NonNullable<Awaited<ReturnType<typeof fetchOrder>>>;
@@ -124,6 +124,7 @@ function toDetail(order: RawDetailOrder): OrderDetail {
     placedDate: formatShortDate(order.created_at),
     placedBy: `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim(),
     currencyCode: order.currencies.code,
+    countryCode: getOrderCountryCode(order),
     subtotal: round2(totals.subtotal),
     shippingPrice: round2(totals.shipping),
     ccProcessingFee: Number(order.cc_processing_fee),
@@ -133,6 +134,14 @@ function toDetail(order: RawDetailOrder): OrderDetail {
     payment: getOrderPayment(order),
     itemGroups: buildItemGroups(order),
   };
+}
+
+function getOrderCountryCode(order: RawDetailOrder): string {
+  const address = order.order_items[0]?.order_item_details[0]?.user_address as
+    | { country?: { code?: string }; countries?: { code?: string } }
+    | null
+    | undefined;
+  return address?.country?.code ?? address?.countries?.code ?? "US";
 }
 
 function buildItemGroups(order: RawDetailOrder): OrderItemGroup[] {
@@ -152,7 +161,9 @@ function buildItemGroups(order: RawDetailOrder): OrderItemGroup[] {
         });
       }
 
-      groupMap.get(key)!.products.push(detail.products.name);
+      const quantity = detail.quantity ?? 1;
+      const label = quantity > 1 ? `${detail.products.name} x ${quantity}` : detail.products.name;
+      groupMap.get(key)!.products.push(label);
     }
   }
 
@@ -258,10 +269,11 @@ async function processItem(
       ccProcessingFee: item.ccProcessingFee,
       creditsUsed: item.creditsUsed,
       total: item.total,
-      stripeSnapshot: item.raw.user_stripe_sources ?? null,
-      bankSnapshot: item.raw.user_bank_accounts
-        ? { ...item.raw.user_bank_accounts, payment_intent_id: paymentMethod === "ACH" ? paymentIntentId : null }
-        : null,
+      stripeSnapshot: paymentMethod === "CARD" ? item.raw.user_stripe_sources ?? null : null,
+      bankSnapshot:
+        paymentMethod === "ACH" && item.raw.user_bank_accounts
+          ? { ...item.raw.user_bank_accounts, payment_intent_id: paymentIntentId }
+          : null,
     });
 
     const orderItem = await saveOrderItem(tx, {
@@ -673,6 +685,27 @@ function getDescription(user: RawOrderUser, items: PricedItem[]): string {
   return `Charge for ${name} - ${products}`;
 }
 
+function toUserStripeSourceJson(card: CartCardSnapshot) {
+  return {
+    id: card.id,
+    brand: card.brand,
+    last4: card.last4,
+    exp_month: card.expMonth,
+    exp_year: card.expYear,
+    stripe_source_id: card.stripePaymentMethodId,
+  };
+}
+
+function toUserBankAccountJson(bank: CartBankSnapshot, paymentIntentId: string | null) {
+  return {
+    id: bank.id,
+    bank_name: bank.bankName,
+    last4: bank.last4,
+    stripe_payment_method_id: bank.stripePaymentMethodId,
+    payment_intent_id: paymentIntentId,
+  };
+}
+
 async function sendOrderNotification(): Promise<void> {
   // TODO: implement Mailjet alerts/emails (port AlertService::send from legacy)
 }
@@ -770,13 +803,14 @@ export async function placeOrderFromCart(input: {
       ccProcessingFee: cart.ccProcessingFee,
       creditsUsed,
       total,
-      stripeSnapshot: cart.userStripeSource,
-      bankSnapshot: cart.userBankAccount
-        ? {
-            ...cart.userBankAccount,
-            payment_intent_id: paymentMethod === "ACH" ? paymentIntentId : null,
-          }
-        : null,
+      stripeSnapshot:
+        paymentMethod === "CARD" && cart.userStripeSource
+          ? toUserStripeSourceJson(cart.userStripeSource)
+          : null,
+      bankSnapshot:
+        paymentMethod === "ACH" && cart.userBankAccount
+          ? toUserBankAccountJson(cart.userBankAccount, paymentIntentId)
+          : null,
     });
 
     for (const [subscriptionId, items] of grouped) {

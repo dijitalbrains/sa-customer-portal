@@ -25,7 +25,7 @@ export default function Card({ order, isActive }: CardProps) {
       <div className="p-[18px] pb-0">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-8">
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 w-[90px]">
               <span className="text-[9px] font-semibold text-text-muted uppercase">Total</span>
               <span className="text-[13px] font-bold text-brand-primary font-data">
                 {formatPrice(order.total, order.currencyCode)}
