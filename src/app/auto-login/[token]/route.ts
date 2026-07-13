@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { signIn } from "@/lib/auth";
-import HashidsService from "@/lib/hashids";
 import { prisma } from "@/lib/prisma";
+import { decodeAutoLoginToken } from "@/lib/services/auto-login-token-service";
 
 export async function GET(
   request: Request,
@@ -14,12 +14,12 @@ export async function GET(
   const legacyLoginUrl = `${process.env.LEGACY_PORTAL_URL}/login`;
   const { token } = await params;
 
-  const decoded = HashidsService.decode(token);
-  if (decoded.length < 2) {
+  const decoded = decodeAutoLoginToken(token);
+  if (!decoded) {
     return NextResponse.redirect(legacyLoginUrl);
   }
 
-  const [userId, adminId] = decoded;
+  const { userId, adminId } = decoded;
   const user = await prisma.users.findUnique({
     where: { id: userId },
     select: { firstname: true, email: true },

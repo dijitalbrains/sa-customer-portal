@@ -1,5 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import { AppError, ErrorCode } from "@/lib/errors/app-error";
+import { NO_ADMIN_ID } from "@/lib/constants/auth";
+import type { AuthSession } from "@/lib/types/auth";
+
+function readCredential(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -11,17 +18,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         userName: {},
         userEmail: {},
       },
-      async authorize(credentials) {
-        const { userId, adminId, userName, userEmail } =
-          credentials as Record<string, string | undefined>;
-
+      authorize(credentials) {
+        const userId = readCredential(credentials.userId);
         if (!userId) return null;
 
+        const adminId = readCredential(credentials.adminId);
         return {
           id: userId,
-          name: userName || "",
-          email: userEmail || "",
-          adminId: adminId ? Number(adminId) : 0,
+          name: readCredential(credentials.userName),
+          email: readCredential(credentials.userEmail),
+          adminId: adminId ? Number(adminId) : NO_ADMIN_ID,
         };
       },
     }),
@@ -29,14 +35,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.id = user.id!;
+        token.id = user.id;
         token.adminId = user.adminId;
       }
       return token;
     },
     session({ session, token }) {
-      session.user.id = token.id as string;
-      session.adminId = token.adminId as number | undefined;
+      session.user.id = typeof token.id === "string" ? token.id : "";
+      session.adminId = typeof token.adminId === "number" ? token.adminId : undefined;
       return session;
     },
   },
@@ -46,19 +52,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 });
 
-export interface AuthSession {
-  userId: number;
-  adminId: number;
-  actorId: number;
-  isAdmin: boolean;
-}
-
 export async function getAuth(): Promise<AuthSession> {
   const session = await auth();
-  if (!session?.user?.id) throw new Error("Unauthorized");
+  if (!session?.user?.id) throw new AppError(ErrorCode.UNAUTHORIZED);
 
   const userId = Number(session.user.id);
-  const adminId = session.adminId ?? 0;
-  const isAdmin = adminId > 0;
+  const adminId = session.adminId ?? NO_ADMIN_ID;
+  const isAdmin = adminId > NO_ADMIN_ID;
   return { userId, adminId, isAdmin, actorId: isAdmin ? adminId : userId };
 }
